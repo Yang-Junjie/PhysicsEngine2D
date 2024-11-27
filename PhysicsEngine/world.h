@@ -8,8 +8,8 @@
 class oeWorld {
 private:
 	int id_count = -1;
-	//std::vector<Body> bodys_list_;
-	Body bodys_list_[100] = {};
+	std::vector<Body> bodys_list_;
+	//Body bodys_list_[100] = {};
 public:
 	
 	oeWorld();

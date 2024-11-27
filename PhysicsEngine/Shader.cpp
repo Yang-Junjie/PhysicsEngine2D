@@ -1,5 +1,14 @@
 #include "Shader.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <glm/gtc/type_ptr.hpp>
+#include "imgui_impl_opengl3_loader.h"
 
+
+Shader::~Shader() {
+
+}
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
     // Read shader files
@@ -38,8 +47,21 @@ void Shader::use() const
 
 void Shader::scale(float coeff)
 {
-    GLint scaleFactorLocation = glGetUniformLocation(ID, "transform");
+    GLint scaleFactorLocation = glGetUniformLocation(ID, "scaling");
     glUniform1f(scaleFactorLocation, coeff);
+}
+
+void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
+{
+    GLint matrixLocation = glGetUniformLocation(ID, name.c_str());
+    glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void Shader::setupProjection(int width, int height) const
+{
+    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+    setMat4("projection", projection);
 }
 
 void Shader::checkCompileErrors(unsigned int shader, const std::string& type)
