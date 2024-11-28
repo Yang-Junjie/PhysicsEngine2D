@@ -17,6 +17,10 @@ public:
     void drawCircle(oeVec2 center, float radius, const float* color, int segments = 36);
     void drawLine(float startX, float startY, float endX, float endY, const float* color);
     void drawLine(oeVec2 start, oeVec2 end, const float* color);
+    void drawPolygon(const oeVec2* vertices, size_t vertices_count, const float* color);
+    void drawHollowPolygon(const oeVec2* vertices, int vertices_count, const float* color);
+
+    void drawAABB(const oeVec2& topLeft, const oeVec2& bottomRight, const float color[4]);
 };
 
 #endif // RENDERER_H

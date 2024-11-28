@@ -12,13 +12,18 @@ enum Shape {
 	BOX
 };
 
+struct oeAABB
+{
+	oeVec2 lowerBound;
+	oeVec2 upperBound;
+};
 
 
 
 //物体类
 //功能：是本物理引擎最基本的元素， 所有的物体都是Body类，通常不能直接调用Body的构造函数创建物体，需要通过BodyManager的CreateBody函数来创建物体
 //能创建多边形，圆形两种形状。创建的物体包含了基本的物理属性
-class Body {
+class oeBody {
 public:
 
 	//以下是物体的特征值
@@ -42,15 +47,13 @@ public:
 
 	int vertices_count_ = 0;
 
+	//aabb包围盒的顶点
+	oeAABB aabb_;
+	
+	float color_box_[4] = {1, 1, 1, 1};
 	struct shuxing
 	{
-		////aabb包围盒的顶点
-		//oeVec2 vertices_aabb_[4] = { {0.0f, 0.0f},
-		//								{0.0f, 0.0f},
-		//								{0.0f, 0.0f},
-		//								{0.0f, 0.0f} };
-		////包围盒的颜色
-	//float color_box_[4] = {255, 100, 100, 255};
+		
 
 	////物理属性值
 	////物体是否静止，false->非静止，true->静止
@@ -96,18 +99,21 @@ public:
 	};
 
 	//物体的析构函数
-	~Body();
-	Body();
+	~oeBody();
+	oeBody();
 
 	//Circle Box构造函数
 	//依次传入参数：shape,radius，color,mass>0,mass_center,body_id（可选，但不能使用重复id可通过body_list查看所有物体的id）
-	Body(Shape shape, float radius_or_width, float* color,oeVec2 mass_center);
+	oeBody(Shape shape, float radius_or_width, float* color,oeVec2 mass_center);
 
 	//Polygon构造函数，重载函数
 	//依次传入参数：shape,vertices，color,mass>0,mass_center,body_id（可选，但不能使用重复id可通过body_list查看所有物体的id）
-	Body(Shape shape, oeVec2* vertices,int vertices_count, float* color);
+	oeBody(Shape shape, oeVec2* vertices,int vertices_count, float* color);
 
 
+	void Move(const oeVec2 v);
+	void Rotation(const float angle);
+	void GetAABB();
 };
 
 

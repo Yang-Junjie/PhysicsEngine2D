@@ -91,7 +91,7 @@ void Renderer::drawCircle(float centerX, float centerY, float radius, const floa
     colors.push_back(color[0]);
     colors.push_back(color[1]);
     colors.push_back(color[2]);
-    colors.push_back(color[2]);
+    colors.push_back(color[3]);
 
     for (int i = 0; i <= segments; ++i) {
         float angle = i * angleStep;
@@ -236,3 +236,158 @@ void Renderer::drawLine(oeVec2 start, oeVec2 end, const float* color)
     glDeleteVertexArrays(1, &vao);
 }
 
+
+void Renderer::drawPolygon(const oeVec2* vertices, size_t vertices_count, const float* color) {
+    if (vertices == nullptr || vertices_count < 3 || color == nullptr) {
+        return; // 不足三个顶点无法构成多边形，或者颜色数组为空
+    }
+
+    // 创建颜色数组，所有顶点共享同一个颜色
+    std::vector<float> colors(vertices_count * 4);
+    for (size_t i = 0; i < vertices_count; ++i) {
+        colors[i * 4 + 0] = color[0];
+        colors[i * 4 + 1] = color[1];
+        colors[i * 4 + 2] = color[2];
+        colors[i * 4 + 3] = color[3];
+    }
+
+    // 创建和绑定VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // 创建和绑定VBO for vertices
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices_count * 2 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    // 设置顶点属性指针
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // 创建和绑定VBO for colors
+    unsigned int cbo;
+    glGenBuffers(1, &cbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
+
+    // 设置颜色属性指针
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    // 绘制多边形
+    glDrawArrays(GL_TRIANGLE_FAN, 0, static_cast<GLsizei>(vertices_count));
+
+    // 清理
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &cbo);
+    glDeleteVertexArrays(1, &vao);
+}
+
+void Renderer::drawHollowPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
+    if (vertices_count < 3) {
+        // Error handling: A polygon must have at least 3 vertices.
+        return;
+    }
+
+    // Prepare vertex data
+    std::vector<float> verticesData;
+    std::vector<float> colors;
+
+    for (int i = 0; i < vertices_count; ++i) {
+        verticesData.push_back(vertices[i].x);
+        verticesData.push_back(vertices[i].y);
+        verticesData.push_back(0.0f); // Z coordinate is always 0 for 2D rendering
+
+        colors.push_back(color[0]);
+        colors.push_back(color[1]);
+        colors.push_back(color[2]);
+        colors.push_back(color[3]);
+    }
+
+    // Create and bind VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Create and bind VBO for vertices
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, verticesData.size() * sizeof(float), verticesData.data(), GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Create and bind VBO for colors
+    unsigned int cbo;
+    glGenBuffers(1, &cbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for colors
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    // Draw the hollow polygon
+    glDrawArrays(GL_LINE_LOOP, 0, vertices_count);
+
+    // Clean up
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &cbo);
+    glDeleteVertexArrays(1, &vao);
+}
+
+
+void Renderer::drawAABB(const oeVec2& topLeft, const oeVec2& bottomRight, const float color[4]) {
+    // 定义矩形的四个顶点
+    oeVec2 vertices[] = {
+        {topLeft.x, topLeft.y},           // 左上角
+        {bottomRight.x, topLeft.y},       // 右上角
+        {bottomRight.x, bottomRight.y},   // 右下角
+        {topLeft.x, bottomRight.y}        // 左下角
+    };
+
+    // 颜色数据，每个顶点的颜色都相同
+    float colors[] = {
+        color[0], color[1], color[2], color[3], // 左上角
+        color[0], color[1], color[2], color[3], // 右上角
+        color[0], color[1], color[2], color[3], // 右下角
+        color[0], color[1], color[2], color[3]  // 左下角
+    };
+
+    // 创建并绑定VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // 创建并绑定VBO for vertices
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // 设置顶点属性指针
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0); // 每个顶点有2个float
+    glEnableVertexAttribArray(0);
+
+    // 创建并绑定VBO for colors
+    unsigned int cbo;
+    glGenBuffers(1, &cbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+    // 设置颜色属性指针
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0); // 每个颜色有4个float
+    glEnableVertexAttribArray(1);
+
+    // 绘制空心矩形
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    // 清理资源
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &cbo);
+    glDeleteVertexArrays(1, &vao);
+}

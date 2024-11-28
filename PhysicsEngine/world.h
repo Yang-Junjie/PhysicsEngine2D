@@ -8,7 +8,7 @@
 class oeWorld {
 private:
 	int id_count = -1;
-	std::vector<Body> bodys_list_;
+	std::vector<oeBody> bodys_list_;
 	//Body bodys_list_[100] = {};
 public:
 	
@@ -17,8 +17,9 @@ public:
 	oeVec2 gravity = { 0.0f,-10.0f };
 	void CreatCircle(CirlceType data);
 	void CreatBox(BoxType data);
-	Body& FindBody(const int id);
+	oeBody& FindBody(const int id);
 	void RenderBody(Renderer& renderer);
-
+	int GetBodyNum();
+	std::vector<oeBody>* GetBodysList();
 
 };

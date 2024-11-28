@@ -92,6 +92,7 @@ struct oeVec2
         y = sin_angle * x + cos_angle * y;
         x = temp_x;
     }
+
     static inline float AngleToRadian(float angle) {
         return static_cast<float>(angle * M_PI / 180.0f);
     }
