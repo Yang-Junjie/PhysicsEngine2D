@@ -14,8 +14,9 @@ enum Shape {
 
 struct oeAABB
 {
-	oeVec2 lowerBound;
-	oeVec2 upperBound;
+	bool draw_state = false;
+	oeVec2 max;
+	oeVec2 min;
 };
 
 
@@ -49,6 +50,10 @@ public:
 
 	//aabb°üÎ§ºÐµÄ¶¥µã
 	oeAABB aabb_;
+
+	float aabb_color_[4] = { 0,0,0,0 };
+
+	bool stationary_ = false;
 	
 	float color_box_[4] = {1, 1, 1, 1};
 	struct shuxing

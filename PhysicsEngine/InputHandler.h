@@ -4,11 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+
 // 声明全局变量
 extern bool rightMousePressed;
 extern float lastX, lastY;
 extern glm::vec2 translation;
 extern float OE_ZOOM;
+
 
 // 鼠标按钮回调函数
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);

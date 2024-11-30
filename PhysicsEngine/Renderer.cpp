@@ -1,6 +1,8 @@
 #include "Renderer.h"
 #include <vector>
 #include <cmath>
+#include <string>
+
 
 void Renderer::setClearColor(float r, float g, float b, float a) {
     glClearColor(r, g, b, a);
@@ -236,8 +238,7 @@ void Renderer::drawLine(oeVec2 start, oeVec2 end, const float* color)
     glDeleteVertexArrays(1, &vao);
 }
 
-
-void Renderer::drawPolygon(const oeVec2* vertices, size_t vertices_count, const float* color) {
+void Renderer::drawPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
     if (vertices == nullptr || vertices_count < 3 || color == nullptr) {
         return; // 不足三个顶点无法构成多边形，或者颜色数组为空
     }
@@ -284,6 +285,46 @@ void Renderer::drawPolygon(const oeVec2* vertices, size_t vertices_count, const 
     glDeleteBuffers(1, &cbo);
     glDeleteVertexArrays(1, &vao);
 }
+
+//void Renderer::drawPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
+//    if (vertices == nullptr || vertices_count < 3 || color == nullptr) {
+//        return;
+//    }
+//
+//    std::vector<float> colors(vertices_count * 4);
+//    for (size_t i = 0; i < vertices_count; ++i) {
+//        colors[i * 4 + 0] = color[0];
+//        colors[i * 4 + 1] = color[1];
+//        colors[i * 4 + 2] = color[2];
+//        colors[i * 4 + 3] = color[3];
+//    }
+//
+//    // 从对象池获取 VAO 和 VBO
+//    unsigned int vao = objectPool.getVAO();
+//    glBindVertexArray(vao);
+//
+//    unsigned int vbo = objectPool.getVBO();
+//    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+//    glBufferData(GL_ARRAY_BUFFER, vertices_count * 2 * sizeof(float), vertices, GL_STATIC_DRAW);
+//
+//    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+//    glEnableVertexAttribArray(0);
+//
+//    unsigned int cbo = objectPool.getVBO(); // 假设颜色数据使用同一个 VBO 池
+//    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+//    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
+//
+//    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+//    glEnableVertexAttribArray(1);
+//
+//    glDrawArrays(GL_TRIANGLE_FAN, 0, static_cast<GLsizei>(vertices_count));
+//
+//    // 回收 VAO 和 VBO 到对象池
+//    objectPool.returnVAO(vao);
+//    objectPool.returnVBO(vbo);
+//    objectPool.returnVBO(cbo);
+//}
+
 
 void Renderer::drawHollowPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
     if (vertices_count < 3) {
@@ -341,13 +382,15 @@ void Renderer::drawHollowPolygon(const oeVec2* vertices, int vertices_count, con
 }
 
 
-void Renderer::drawAABB(const oeVec2& topLeft, const oeVec2& bottomRight, const float color[4]) {
+void Renderer::drawAABB(const oeAABB aabb, const float color[4]) {
     // 定义矩形的四个顶点
     oeVec2 vertices[] = {
-        {topLeft.x, topLeft.y},           // 左上角
-        {bottomRight.x, topLeft.y},       // 右上角
-        {bottomRight.x, bottomRight.y},   // 右下角
-        {topLeft.x, bottomRight.y}        // 左下角
+        {aabb.min.x, aabb.max.y},           // 左上角
+        {aabb.min.x, aabb.min.y},           // 左下角
+        { aabb.max.x, aabb.min.y },         // 右下角
+        {aabb.max.x, aabb.max.y}            // 右上角
+        
+           
     };
 
     // 颜色数据，每个顶点的颜色都相同
@@ -391,3 +434,4 @@ void Renderer::drawAABB(const oeVec2& topLeft, const oeVec2& bottomRight, const 
     glDeleteBuffers(1, &cbo);
     glDeleteVertexArrays(1, &vao);
 }
+
