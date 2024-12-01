@@ -3,7 +3,7 @@
 #include <cmath>   // For std::cos and std::sin
 #include <iostream>
 
-const float VerySmallAmount = 0.00005f;
+const float VerySmallAmount = 0.0000000000005f;
 
 struct FlatTransform
 {
@@ -138,7 +138,7 @@ struct oeVec2
     }
 
     //向量归一化
-    static inline oeVec2 normalize(oeVec2 v) {
+    static oeVec2 normalize(oeVec2 v) {
         float length = oeVec2::len(v);
         if (length > VerySmallAmount) {
             v.x /= length;

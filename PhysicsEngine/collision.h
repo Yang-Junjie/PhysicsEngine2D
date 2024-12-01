@@ -17,251 +17,6 @@ struct IntersectData {
     oeVec2 normal;
 };
 
-//计算多边形在轴上的投影
-static  oeVec2 ProjectVertices(const oeVec2& axis, const std::vector<oeVec2>& vertices) {
-    float min = std::numeric_limits<float>::max();
-    float max = std::numeric_limits<float>::lowest();
-
-    for (const auto& vertex : vertices) {
-        float projection = axis.dot(vertex);
-        min = std::min(min, projection);
-        max = std::max(max, projection);
-    }
-
-    return oeVec2(min, max);
-}
-
-//计算圆在某个轴上的投影
-static oeVec2 ProjectCircle(const oeVec2& center, const float& radius, const oeVec2& axis) {
-    oeVec2 interval;
-
-    oeVec2 direction_vector = oeVec2::normalize(axis);
-    oeVec2 direction_and_radius = direction_vector * radius;
-
-    oeVec2 p1 = center + direction_and_radius;
-    oeVec2 p2 = center - direction_and_radius;
-
-    interval.x = oeVec2::dot(p1, axis);
-    interval.y = oeVec2::dot(p2, axis);
-
-    if (interval.x > interval.y) {
-        float temp;
-        temp = interval.x;
-        interval.x = interval.y;
-        interval.y = temp;
-    }
-    return interval;
-}
-
-//找到多边形距离点最近的顶点
-static size_t FindVertexClosestPoint(const oeVec2& point, const std::vector<oeVec2>& vertices) {
-    size_t result = 0;
-    float min_distance = std::numeric_limits<float>::max();
-    for (size_t i = 0; i < vertices.size(); ++i) {
-        float distance = oeVec2::Distance(vertices[i], point);
-        if (distance <= min_distance) {
-            min_distance = distance;
-            result = i;
-        }
-    }
-    return result;
-}
-
-
-
-
-//如果点在AABB外将会给出点到AABB的距离的平方
-//如果点在AABB上或者在AABB内将会给出0
-static float DistSqdPointAABB(const oeVec2& p, const std::vector<oeVec2>& vertices_aabb) {
-    float sqDist = 0.0f;
-    for (int i = 0; i < 2; i++) {
-        float v, min, max;
-        if (i == 0)
-        {
-            v = p.x;
-            min = vertices_aabb[3].x;
-            max = vertices_aabb[1].x;
-            /*当i为0时对应x
-            v设置为点 p 的 x 坐标。
-            min 设置为边界框左上角点的 x 坐标（vertices_aabb[3].x）。
-            max 设置为边界框右下角点的 x 坐标（vertices_aabb[1].x）。*/
-        }
-        if (i == 1)
-        {
-            v = p.y;
-            min = vertices_aabb[3].y;
-            max = vertices_aabb[1].y;
-            /*当i为1时对应y
-            v设置为点 p 的 y 坐标。
-            min 设置为边界框左上角点的 y 坐标（vertices_aabb[3].y）。
-            max 设置为边界框右下角点的 y 坐标（vertices_aabb[1].y）。y*/
-        }
-        if (v >= min && v <= max) return 0.0f;//如果在AABB上内直接返回0；
-        if (v < min) sqDist += (min - v) * (min - v);
-        if (v > max) sqDist += (v - max) * (v - max);
-    }
-    return sqDist; // 计算平方根  
-}
-
-
-//计算点与直线的接触点
-//其原理是计算点距离线段哪个端点近那么那个端点极有可能是接触点
-static oeVec2 GetSegmentContactPoint(const oeVec2& point, const oeVec2& segment_start, const oeVec2& segment_end) {
-    oeVec2 segment_vector = segment_end - segment_start;//计算线段向量
-    oeVec2 point_to_segment_start_vector = point - segment_start;//计算从线段起点指向点的向量
-
-    float projection_length = oeVec2::dot(point_to_segment_start_vector, segment_vector);
-    float segment_length_squared = oeVec2::LengthSquared(segment_vector);
-    float projection_parameter = projection_length / segment_length_squared;//计算投影参数 proj_param = (|AP||AB| * cos(θ)) / |AB|^2
-
-    if (projection_parameter <= 0) {
-        return segment_start;
-    }
-    if (projection_parameter >= 1) {
-        return segment_end;
-    }
-    else {
-        return segment_start + (segment_end - segment_start) * projection_parameter;
-    }
-}
-
-//计算点与直线的最近点（可能的接触点）返回最近点(可能的接触点)
-inline oeVec2 SegmentNearestEndpoint(const float& projection_parameter, const oeVec2& segment_start, const oeVec2& segment_end) {
-    if (projection_parameter <= 0) {
-        return segment_start;
-    }
-    if (projection_parameter >= 1) {
-        return segment_end;
-    }
-    else {
-        return segment_start + (segment_end - segment_start) * projection_parameter;
-    }
-}
-
-//计算点距离线段最近的端点的距离的平方
-static float DisSqdPointSegmentNearestEndpoint(const oeVec2& point, const oeVec2& segment_start, const oeVec2& segment_end) {
-    oeVec2 segment_vector = segment_end - segment_start;//计算线段向量
-    oeVec2 point_to_segment_start_vector = point - segment_start;//计算从线段起点指向点的向量
-
-    float projection_length = oeVec2::dot(point_to_segment_start_vector, segment_vector);
-    float segment_length_squared = oeVec2::LengthSquared(segment_vector);
-    float projection_parameter = projection_length / segment_length_squared;//计算投影参数 proj_param = (|AP||AB| * cos(θ)) / |AB|^2
-
-    oeVec2 closest_point = SegmentNearestEndpoint(projection_parameter, segment_start, segment_end);
-    float distance_squared = oeVec2::DistanceSquared(point, closest_point);
-
-    return distance_squared;
-}
-
-
-//此命名空间包含了寻找物体与物体的接触点的函数
-//构建此命名空间是为了代码模块化，使代码结构更清晰
-namespace FindContactPoint {
-
-    /*找到圆与圆碰撞时的接触点*/
-    static oeVec2 FindCirclesContactPoint(const oeVec2& center_a, const float& radius_a, const oeVec2& center_b) {
-        oeVec2 v_ab = center_b - center_a;
-        v_ab.normalize();
-        oeVec2 contact_point = center_a + v_ab * radius_a;
-        return contact_point;
-    }
-
-
-    /*找到圆与多边形碰撞时的接触点*/
-    static oeVec2 FindCirclePolygonContactPoint(const oeVec2& circle_center, const std::vector<oeVec2>& polygon_vertices) {
-        float min_distance_Sq = std::numeric_limits<float>::max();
-        oeVec2 contact_point;
-
-        for (int i = 0; i < static_cast<int>(polygon_vertices.size()); i++) {
-            oeVec2 v_a = polygon_vertices[i];
-            oeVec2 v_b = polygon_vertices[(i + 1) % polygon_vertices.size()];
-
-            float distance_sq = DisSqdPointSegmentNearestEndpoint(circle_center, v_a, v_b);
-
-            if (distance_sq < min_distance_Sq) {
-                min_distance_Sq = distance_sq;
-                contact_point = GetSegmentContactPoint(circle_center, v_a, v_b);
-            }
-        }
-        return contact_point;
-    }
-
-    //找到多边形与多边形的接触点
-    static std::vector<oeVec2> FindPolygonsContactPoints(const std::vector<oeVec2>& vertices_a, const std::vector<oeVec2>& vertices_b) {
-        //初始化接触点
-        std::vector<oeVec2> contact_points;
-        oeVec2 contact1;//第一个接触点
-        oeVec2 contact2;//第二个接触点，如果没有第二个接触点，则保持为原点 
-        size_t contact_count = 0;
-
-        //初始化最小距离的平方为无穷大，用于后续比较
-        float min_distancesq = std::numeric_limits<float>::max();
-
-        //遍历第一个多边形的每个顶点，并检查它与第二个多边形每条边的距离  
-        for (oeVec2 point : vertices_a) {
-
-            for (size_t j = 0; j < vertices_b.size(); j++) {
-                oeVec2 v_a = vertices_b[j];//第二个多边形的当前边的起点
-                oeVec2 v_b = vertices_b[(j + 1) % vertices_b.size()];//第二个多边形的当前边的终点，使用模运算处理闭合多边形  
-                float distancesq = DisSqdPointSegmentNearestEndpoint(point, v_a, v_b);
-                oeVec2 cloesest_point = GetSegmentContactPoint(point, v_a, v_b);
-
-                //如果当前距离的平方几乎等于最小距离的平方，并且新接触点不等于第一个接触点  
-                if (oeVec2::NearlyEqual(distancesq, min_distancesq)) {
-                    if (!oeVec2::NearlyEqualFv(cloesest_point, contact1)) {
-                        contact2 = cloesest_point;
-                        contact_count = 2;
-                    }
-                }
-                else if (distancesq < min_distancesq) {
-                    min_distancesq = distancesq;
-                    contact_count = 1;
-                    contact1 = cloesest_point;
-                }
-            }
-        }
-        // 对第二个多边形重复上述过程，以处理可能由于多边形复杂形状而遗漏的接触点
-        for (oeVec2 point : vertices_b) {
-
-            for (size_t j = 0; j < vertices_a.size(); j++) {
-                oeVec2 v_a = vertices_a[j];//第二个多边形的当前边的起点
-                oeVec2 v_b = vertices_a[(j + 1) % vertices_a.size()];//第二个多边形的当前边的终点，使用模运算处理闭合多边形  
-                float distancesq = DisSqdPointSegmentNearestEndpoint(point, v_a, v_b);
-                oeVec2 cloesest_point = GetSegmentContactPoint(point, v_a, v_b);
-
-
-                //如果当前距离的平方几乎等于最小距离的平方，并且新接触点不等于第一个接触点
-                if (oeVec2::NearlyEqual(distancesq, min_distancesq)) {
-                    if (!oeVec2::NearlyEqualFv(cloesest_point, contact1)) {
-                        contact2 = cloesest_point;
-                        contact_count = 2;
-                    }
-                }
-                else if (distancesq < min_distancesq) {
-                    min_distancesq = distancesq;
-                    contact_count = 1;
-                    contact1 = cloesest_point;
-
-                }
-            }
-        }
-
-        //判断接触点个数
-        if (contact_count == 1) {
-            contact_points.push_back(contact1);
-        }
-        else {
-            contact_points.push_back(contact1);
-            contact_points.push_back(contact2);
-        }
-
-
-        return contact_points;
-    }
-
-
-};
-
 
     /*此函数将会判断2个物体的AABB是否相交*/
 static bool IntersectAABB(oeAABB& a, oeAABB& b){
@@ -275,60 +30,265 @@ static bool IntersectAABB(oeAABB& a, oeAABB& b){
 }
 
 
- 
+//找到多边形距离点最近的顶点
+static size_t FindVertexClosestPoint(const oeVec2& point, const oeVec2 vertices[],const int vertices_count) {
+    size_t result = 0;
+    float min_distance = std::numeric_limits<float>::max();
+    for (size_t i = 0; i < vertices_count; ++i) {
+        float distance = oeVec2::Distance(vertices[i], point);
+        if (distance <= min_distance) {
+            min_distance = distance;
+            result = i;
+        }
+    }
+    return result;
+}
 
-//
-////找到两个碰撞物体的接触点
-//static std::vector<oeVec2> FindContactPoints(oeBody& body_a, oeBody& body_b) {
-//    std::vector<oeVec2> contact_points;
-//    Shape shape_type_a = body_a.shape_;
-//
-//    Shape shape_type_b = body_b.shape_;
-//    if (shape_type_a == POLTGON) {
-//        if (shape_type_b == POLTGON) {
-//            contact_points = FindContactPoint::FindPolygonsContactPoints(body_a.vertices_, body_b.vertices_);
-//            return contact_points;
-//        }
-//        else if (shape_type_b == CIRCLE) {
-//            contact_points.push_back(FindContactPoint::FindCirclePolygonContactPoint(body_b.mass_center_, body_a.vertices_));
-//            return contact_points;
-//        }
-//    }
-//    else if (shape_type_a == CIRCLE) {
-//        if (shape_type_b == CIRCLE) {
-//            contact_points.push_back(FindContactPoint::FindCirclesContactPoint(body_a.mass_center_, body_a.radius_, body_b.mass_center_));
-//            return contact_points;
-//        }
-//        else if (shape_type_b == POLTGON) {
-//            contact_points.push_back(FindContactPoint::FindCirclePolygonContactPoint(body_a.mass_center_, body_b.vertices_));
-//            return contact_points;
-//        }
-//
-//    }
-//    return contact_points;
-//}
+//计算多边形在轴上的投影
+static oeVec2 ProjectVertices(const oeVec2& axis, const oeVec2 vertices[], int vertices_count) {
+    float min_proj = std::numeric_limits<float>::max();
+    float max_proj = -std::numeric_limits<float>::max();
+
+    for (int i = 0; i < vertices_count; ++i) {
+        float projection = axis.dot(vertices[i]);
+        min_proj = std::min(min_proj, projection);
+        max_proj = std::max(max_proj, projection);
+    }
+
+    return oeVec2(min_proj, max_proj);
+}
 
 
-//判断两个物体是否碰撞，返回物体的碰撞bool值，碰撞深度,碰撞向量
+
+/*圆与圆碰撞检测*/
+static IntersectData IntersectCircles(const oeVec2& center_a, const float& radius_a, const oeVec2& center_b, const float& radius_b) {
+    IntersectData data;
+    float both_distance = oeVec2::Distance(center_a, center_b);
+    float sum_of_radii = radius_a + radius_b;
+
+    if (both_distance >= sum_of_radii) {
+        return data;
+    }
+
+    //计算单位方向向量
+    oeVec2 unit_direction_vector_ab = center_b - center_a;
+    unit_direction_vector_ab.normalize();
+
+    //更新data
+    data.Collision = true;
+    data.normal = unit_direction_vector_ab;
+    data.depth = sum_of_radii - both_distance;
+
+    return data;
+}
+
+
+// 计算圆在某个轴上的投影
+static oeVec2 ProjectCircle(const oeVec2& center, const float& radius, const oeVec2& axis) {
+    float center_projection = axis.dot(center);
+    return oeVec2(center_projection - radius, center_projection + radius);
+}
+
+// 判断两个区间是否重叠
+static bool overlaps(const oeVec2& interval_a, const oeVec2& interval_b) {
+    return !(interval_a.y < interval_b.x || interval_b.y < interval_a.x);
+}
+
+// 圆与多边形的碰撞检测，分离轴算法
+static IntersectData IntersectCirclePolygon(
+    const oeVec2& circle_center, const float& circle_radius,
+    const oeVec2 polygon_mass_center, const oeVec2 polygon_vertices[], const int vertices_count
+) {
+    IntersectData data;
+    data.depth = std::numeric_limits<float>::max();
+
+    // 遍历多边形的每条边，检查边的法向量作为分离轴
+    for (int i = 0; i < vertices_count; ++i) {
+        oeVec2 v_a = polygon_vertices[i];
+        oeVec2 v_b = polygon_vertices[(i + 1) % vertices_count];
+
+        // 计算边的法向量（逆时针顺序，法向量指向外部）
+        oeVec2 edge_vector = v_b - v_a;
+        oeVec2 axis = oeVec2(-edge_vector.y, edge_vector.x); // 左手法则
+        axis.normalize();
+
+        // 计算多边形和圆在该轴上的投影
+        oeVec2 project_polygon = ProjectVertices(axis, polygon_vertices, vertices_count);
+        oeVec2 project_circle = ProjectCircle(circle_center, circle_radius, axis);
+
+        // 判断投影是否重叠，如果不重叠说明没发生碰撞
+        if (!overlaps(project_polygon, project_circle)) {
+            return data;  // 没有重叠，返回
+        }
+
+        // 如果重叠，计算投影的重叠深度
+        float axis_depth = std::min(project_circle.y - project_polygon.x, project_polygon.y - project_circle.x);
+
+        // 如果深度小于当前最小深度，则更新法向量和深度
+        if (axis_depth < data.depth) {
+            data.depth = axis_depth;
+            data.normal = axis;
+        }
+    }
+
+    // 检查从多边形的每个顶点到圆心的向量作为潜在的分离轴
+    for (int i = 0; i < vertices_count; ++i) {
+        oeVec2 vertex = polygon_vertices[i];
+        oeVec2 axis = vertex - circle_center;
+        float length_squared = axis.LengthSquared();
+
+        // 只有当顶点到圆心的距离大于圆的半径时，才将其作为分离轴
+        if (length_squared > circle_radius * circle_radius) {
+            axis.normalize();
+
+            // 计算多边形和圆在该轴上的投影
+            oeVec2 project_polygon = ProjectVertices(axis, polygon_vertices, vertices_count);
+            oeVec2 project_circle = ProjectCircle(circle_center, circle_radius, axis);
+
+            // 判断投影是否重叠，如果不重叠说明没发生碰撞
+            if (!overlaps(project_polygon, project_circle)) {
+                return data;  // 没有重叠，返回
+            }
+
+            // 如果重叠，计算投影的重叠深度
+            float axis_depth = std::min(project_circle.y - project_polygon.x, project_polygon.y - project_circle.x);
+
+            // 如果深度小于当前最小深度，则更新法向量和深度
+            if (axis_depth < data.depth) {
+                data.depth = axis_depth;
+                data.normal = axis;
+            }
+        }
+    }
+
+    // 如果所有轴上都有重叠，设置碰撞结果
+    data.Collision = true;
+    oeVec2 direction_vector = circle_center - polygon_mass_center;
+
+    // 如果法向量需要反转，确保最终结果正确
+    if (oeVec2::dot(direction_vector, data.normal) < 0) {
+        data.normal = -data.normal;
+    }
+    return data;
+}
+
+static IntersectData IntersectPolygons(
+    const oeVec2& mass_center_a, const oeVec2* vertices_a, int verticesA_count,
+    const oeVec2& mass_center_b, const oeVec2* vertices_b, int verticesB_count
+) {
+    // 检查输入的多边形是否有足够的顶点
+    if (verticesA_count < 3 || verticesB_count < 3) {
+        // 处理退化多边形
+        IntersectData data;
+        data.Collision = false;
+        return data;
+    }
+
+    IntersectData data;
+    data.depth = std::numeric_limits<float>::max();
+   
+    // 提前计算质心方向向量
+    auto CheckAxis = [&](const oeVec2& axis, const oeVec2 vertices_a[], int verticesA_count, const oeVec2 vertices_b[], int verticesB_count) {
+        // 计算多边形在该轴上的投影
+        oeVec2 proj_a = ProjectVertices(axis, vertices_a, verticesA_count);
+        oeVec2 proj_b = ProjectVertices(axis, vertices_b, verticesB_count);
+
+        // 判断投影是否重叠
+        if (proj_a.y < proj_b.x || proj_b.y < proj_a.x) {
+            return false;
+        }
+
+        // 计算投影的重叠深度
+        float axis_depth = std::min(proj_b.y - proj_a.x, proj_a.y - proj_b.x);
+
+        // 如果深度小于当前最小深度，则更新法向量和深度
+        if (axis_depth < data.depth) {
+            data.depth = axis_depth;
+            data.normal = axis;
+
+        }
+        return true;
+        };
+
+    // 缓存多边形B的投影结果
+    std::vector<oeVec2> projections_b;
+
+    // 遍历多边形A的每条边
+    for (int i = 0; i < verticesA_count; ++i) {
+        oeVec2 v_a = vertices_a[i];
+        oeVec2 v_b = vertices_a[(i + 1) % verticesA_count];
+
+        // 计算边的法向量（逆时针顺序，法向量指向外部）
+        oeVec2 edge_vector = v_b - v_a;
+        oeVec2 axis = oeVec2(-edge_vector.y, edge_vector.x); // 左手法则
+        axis.normalize();
+
+        // 检查是否重叠
+        if (!CheckAxis(axis, vertices_a, verticesA_count, vertices_b, verticesB_count)) {
+            return data; // 没有重叠，返回
+        }
+
+        // 缓存多边形B的投影
+        projections_b.push_back(ProjectVertices(axis, vertices_b, verticesB_count));
+    }
+
+    // 遍历多边形B的每条边
+    for (int i = 0; i < verticesB_count; ++i) {
+        oeVec2 v_a = vertices_b[i];
+        oeVec2 v_b = vertices_b[(i + 1) % verticesB_count];
+
+        // 计算边的法向量（逆时针顺序，法向量指向外部）
+        oeVec2 edge_vector = v_b - v_a;
+        oeVec2 axis = oeVec2(-edge_vector.y, edge_vector.x); // 左手法则
+        axis.normalize();
+
+        // 使用缓存的多边形A的投影
+        oeVec2 proj_a = projections_b[i % projections_b.size()];
+        oeVec2 proj_b = ProjectVertices(axis, vertices_b, verticesB_count);
+
+        // 检查是否重叠
+        if (!CheckAxis(axis, vertices_a, verticesA_count, vertices_b, verticesB_count)) {
+            return data; // 没有重叠，返回
+        }
+    }
+
+    // 如果所有轴上都有重叠，设置碰撞结果
+    data.Collision = true;
+    oeVec2 direction_vector = mass_center_b - mass_center_a;
+
+    // 如果法向量需要反转，确保最终结果正确
+    if (oeVec2::dot(direction_vector, data.normal) < 0) {
+        data.normal = -data.normal;
+    }
+
+    return data;
+}
+
 static IntersectData  Collide(oeBody& body_a, oeBody& body_b) {
     IntersectData intersect_data;
     Shape shape_type_a = body_a.shape_;
     Shape shape_type_b = body_b.shape_;
 
-    if (shape_type_a == POLTGON) {
-        if (shape_type_b == POLTGON) {
+    if (shape_type_a == BOX || shape_type_a == POLTGON) {
+        if (shape_type_b == BOX || shape_type_b == POLTGON) {
+            intersect_data = IntersectPolygons(body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,
+                                               body_b.mass_center_, body_b.vertices_,body_b.vertices_count_);
             
+            return intersect_data;
         }
         else if (shape_type_b == CIRCLE) {
-            
+            intersect_data = IntersectCirclePolygon(body_b.mass_center_, body_b.radius_or_width_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_);
+            return intersect_data;
         }
     }
     else if (shape_type_a == CIRCLE) {
         if (shape_type_b == CIRCLE) {
-            
+            intersect_data =IntersectCircles(body_a.mass_center_, body_a.radius_or_width_, body_b.mass_center_, body_b.radius_or_width_);
+            return intersect_data;
         }
-        else if (shape_type_b == POLTGON) {
-            
+        else if (shape_type_b == POLTGON|| shape_type_b == BOX) {
+            intersect_data = IntersectCirclePolygon(body_a.mass_center_, body_a.radius_or_width_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_);
+            return intersect_data;
         }
     }
 

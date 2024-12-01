@@ -23,10 +23,11 @@ oeWorld world;
 Renderer renderer;
 bool lock120FPS = true;
 bool intersect = false;
+static int bodyid = 0; // 创建一个变量来保存输入的整型值
 
 oeBody* selectedBody = nullptr;
 
-void dome1() {
+static void dome1() {
     for (int i = 0; i < 1; i++) {
         for (int j = 0; j < 1; j++) {
             BoxType data;
@@ -36,26 +37,34 @@ void dome1() {
     }
 }
 
-void dome2() {
+static void dome2() {
     BoxType data;
     world.CreatBox(data);
-    world.FindBody(0).Rotation(oeVec2::AngleToRadian(45));
+
+    
+    world.CreatBox(data);
+    world.FindBody(1).Move({ 0.5f,0.0f });
+
+    CircleType data1;
+    world.CreatCircle(data1);
+    world.FindBody(2).Move({ -0.5f,0.0f });
+    world.CreatCircle(data1);
 }
 
-void dome3() {
+static void dome3() {
     int count = 0;
     for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 1; j++) {
+        for (int j = 0; j < 2; j++) {
             BoxType data;
             data.position += oeVec2(0.5f * i, 0.5f * j);
             world.CreatBox(data);
-            world.FindBody(count).Rotation(oeVec2::AngleToRadian(45));
+            //world.FindBody(count).Rotation(oeVec2::AngleToRadian(45));
             count++;
         }
     }
 }
 
-void ContorlAllBody() {
+static void ContorlAllBody() {
     for (auto& body : *(world.GetBodysList())) {
         body.Rotation(oeVec2::AngleToRadian(1));
     }
@@ -87,7 +96,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome3();
+        dome2();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -132,7 +141,7 @@ int main() {
             renderer.drawLine(oeVec2(0, -100), oeVec2(0, 100), color);
             renderer.drawLine(oeVec2(-100, 0), oeVec2(100, 0), color);
 
-           ContorlAllBody();
+           // ContorlAllBody();
 
             world.RenderBody(renderer);
 
@@ -142,7 +151,7 @@ int main() {
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::Text("num of Body : %d", world.GetBodyNum());
 
-                static int bodyid = 0; // 创建一个变量来保存输入的整型值
+                
                 static bool button_clicked = false;
                 static bool checkbox_state = false;
                 // 勾选框
@@ -211,21 +220,35 @@ int main() {
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (selectedBody != nullptr) {
-            float moveSpeed = 0.05f; // 移动速度
+            float moveSpeed = 0.01f; // 移动速度
             switch (key) {
-            case GLFW_KEY_UP:
+            case GLFW_KEY_W:
                 selectedBody->Move(oeVec2(0, moveSpeed));
                 break;
-            case GLFW_KEY_DOWN:
+            case GLFW_KEY_S:
                 selectedBody->Move(oeVec2(0, -moveSpeed));
                 break;
-            case GLFW_KEY_LEFT:
+            case GLFW_KEY_A:
                 selectedBody->Move(oeVec2(-moveSpeed, 0));
                 break;
-            case GLFW_KEY_RIGHT:
+            case GLFW_KEY_D:
                 selectedBody->Move(oeVec2(moveSpeed, 0));
                 break;
+            case GLFW_KEY_R:
+                selectedBody->Rotation(oeVec2::AngleToRadian(-45));
+                break;
+            case GLFW_KEY_Q:
+                selectedBody->Rotation(oeVec2::AngleToRadian(45));
+                break;
+            case GLFW_KEY_RIGHT:
+                
+                break;
+            case GLFW_KEY_LEFT:
+                
+                break;
             }
+
+
         }
     }
 }

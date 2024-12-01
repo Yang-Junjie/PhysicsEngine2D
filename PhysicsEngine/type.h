@@ -1,6 +1,6 @@
 #pragma once
 #include "math.h"
-struct CirlceType
+struct CircleType
 {
 	float radius = 0.1f;
 	oeVec2 position = { 0.0f,0.0f };

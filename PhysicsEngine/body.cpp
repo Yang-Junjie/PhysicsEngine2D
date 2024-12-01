@@ -79,8 +79,8 @@ void oeBody::GetAABB()
 		const float center_y =mass_center_.y;
 		const float radius =radius_or_width_;
 
-		aabb_.min = { center_x - radius , center_y + radius };
-		aabb_.max = { center_x + radius , center_y - radius };
+		aabb_.min = { center_x - radius , center_y - radius };
+		aabb_.max = { center_x + radius , center_y + radius};
 	}
 	else if (shape_ == BOX) {
 		float max_x = -std::numeric_limits<float>::max();
