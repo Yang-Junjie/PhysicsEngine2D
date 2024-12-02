@@ -1,7 +1,9 @@
 #include "world.h"
 
 
-oeWorld::oeWorld()
+
+
+oeWorld::oeWorld(Renderer* renderer):renderer_(renderer)
 {
 }
 
@@ -9,9 +11,9 @@ oeWorld::~oeWorld()
 {
 }
 
-void oeWorld::CreatCircle(CircleType data)
+void oeWorld::CreatCircle(CircleType type_data, Property prop_data)
 {
-	oeBody tmp(CIRCLE,data.radius,data.color,data.position);
+	oeBody tmp(CIRCLE,type_data.radius, type_data.color, type_data.position, prop_data.mass_);
 	++id_count;
 	tmp.body_id_ = id_count;
 	bodys_list_.push_back(tmp);
@@ -19,46 +21,62 @@ void oeWorld::CreatCircle(CircleType data)
 }
 
 
-void oeWorld::CreatBox(BoxType data)
+void oeWorld::CreatBox(BoxType type_data, Property prop_data)
 {
-	oeBody tmp(BOX, data.width, data.color, data.position);
+	oeBody tmp(BOX, type_data.width, type_data.color, type_data.position, prop_data.mass_);
 	++id_count;
 	tmp.body_id_ = id_count;
 	bodys_list_.push_back(tmp);
 	//bodys_list_[id_count] = tmp;
 }
 
-oeBody& oeWorld::FindBody(const int id)
+
+void oeWorld::CreatPolygon(PolygonType type_data,Property prop_data)
 {
-	if (bodys_list_[id].body_id_ == 0) {
-		return bodys_list_[id];
+	oeBody tmp(POLTGON, type_data.vertices, type_data.vertces_count, type_data.color,prop_data.mass_);
+	++id_count;
+	tmp.body_id_ = id_count;
+	bodys_list_.push_back(tmp);
+	//bodys_list_[id_count] = tmp;
+}
+
+oeBody* oeWorld::FindBody(const int id)
+{
+	if (bodys_list_[id].body_id_ == -1) {
+		return nullptr;
 	}
 	else {
-		return bodys_list_[id];
+		return &bodys_list_[id];
 	}
 }
 
-void oeWorld::RenderBody(Renderer& renderer)
+void oeWorld::RenderBody()
 {
 	for (auto& body : bodys_list_) {
 		if (body.shape_ == CIRCLE) {
 			
-			renderer.drawCircle(body.mass_center_.x, body.mass_center_.y, body.radius_or_width_, body.color_,36);
+			renderer_->drawCircle(body.mass_center_.x, body.mass_center_.y, body.radius_or_half_width_, body.color_,36);
 		}
-		else if(body.shape_==BOX) {
-		//	renderer.drawRectangle(body.mass_center_.x, body.mass_center_.y, body.radius_or_width_, body.radius_or_width_, body.color_);
-			renderer.drawPolygon(body.vertices_, body.vertices_count_, body.color_);
+		else if (body.shape_ == POLTGON || body.shape_ == BOX) {
+			renderer_->drawPolygon(body.vertices_, body.vertices_count_, body.color_);
 		}
 	}
 }
 
-void oeWorld::RenderAABB(Renderer& renderer)
+void oeWorld::RenderAABB()
 {
 	
 	for (auto& body : bodys_list_) {
-		renderer.drawAABB(body.aabb_,body.aabb_color_);
+		renderer_->drawAABB(body.aabb_,body.aabb_color_);
 	}
 }
+
+void oeWorld::RenderNormal(  const oeBody& body, const oeVec2& vec)
+{
+	renderer_->drawVector(body.mass_center_, vec, body.aabb_color_);
+}
+
+
 
 void oeWorld::Interation(float time)
 {
@@ -141,15 +159,21 @@ void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_
 {
 	if (body_a.stationary_) {
 		body_b.Move(separation_vector / 2);
-		//std::cout << separation_vector << std::endl;
+		
+		RenderNormal(body_b, separation_vector * 5.0f / 2);
+		///std::cout << separation_vector << std::endl;
 	}
 	else if (body_b.stationary_) {
 		body_a.Move(-separation_vector / 2);
+		
+		RenderNormal(body_b, -separation_vector * 5.0f / 2);
 
 	}
 	else {
 		body_a.Move(-separation_vector / 2);
 		body_b.Move(separation_vector / 2);
+		RenderNormal(body_a, -separation_vector*5.0f / 2);
+		RenderNormal(body_b, separation_vector * 5.0f / 2);
 	}
 }
 
@@ -175,3 +199,5 @@ void oeWorld::NarrowPhase()
 
 	}
 }
+
+

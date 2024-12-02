@@ -147,7 +147,7 @@ void Renderer::drawCircle(oeVec2 center, float radius, const float* color, int s
 {
     Renderer::drawCircle(center.x, center.y, radius, color, segments);
 }
-void Renderer::drawLine(float startX, float startY, float endX, float endY, const float* color) {
+void Renderer::drawLine(const float startX, const float startY, const float endX, const float endY, const float* color) {
     float vertices[] = {
         startX, startY, 0.0f,
         endX,   endY,   0.0f
@@ -192,11 +192,57 @@ void Renderer::drawLine(float startX, float startY, float endX, float endY, cons
     glDeleteVertexArrays(1, &vao);
 }
 
-void Renderer::drawLine(oeVec2 start, oeVec2 end, const float* color)
+void Renderer::drawLine(const oeVec2 start, const oeVec2 end, const float* color)
 {
     float vertices[] = {
         start.x, start.y, 0.0f,
         end.x,   end.y,   0.0f
+    };
+
+    float colors[] = {
+        color[0], color[1], color[2], color[3],
+        color[0], color[1], color[2], color[3]
+    };
+
+    // Create and bind VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Create and bind VBO for vertices
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Create and bind VBO for colors
+    unsigned int cbo;
+    glGenBuffers(1, &cbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for colors
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    // Draw the line
+    glDrawArrays(GL_LINES, 0, 2);
+
+    // Clean up
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &cbo);
+    glDeleteVertexArrays(1, &vao);
+}
+
+void Renderer::drawVector(const oeVec2 start, const oeVec2 vector, const float* color)
+{
+    float vertices[] = {
+        start.x, start.y, 0.0f,
+        start.x+ vector.x,   start.y+ vector.y,   0.0f
     };
 
     float colors[] = {

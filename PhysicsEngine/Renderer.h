@@ -23,8 +23,9 @@ public:
     void drawCircle(float centerX, float centerY, float radius, const float* color, int segments = 36);
     void drawCircle(oeVec2 center, float radius, const float* color, int segments = 36);
 
-    void drawLine(float startX, float startY, float endX, float endY, const float* color);
-    void drawLine(oeVec2 start, oeVec2 end, const float* color);
+    void drawLine(const float startX, const float startY, const float endX, const float endY, const float* color);
+    void drawLine(const oeVec2 start, const oeVec2 end, const float* color);
+    void drawVector(const oeVec2 start, const oeVec2 end, const float* color);
 
     void drawPolygon(const oeVec2* vertices, int vertices_count, const float* color);
     void drawHollowPolygon(const oeVec2* vertices, int vertices_count, const float* color);

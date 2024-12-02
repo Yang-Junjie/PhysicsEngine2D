@@ -93,17 +93,27 @@ static oeVec2 ProjectCircle(const oeVec2& center, const float& radius, const oeV
 static bool overlaps(const oeVec2& interval_a, const oeVec2& interval_b) {
     return !(interval_a.y < interval_b.x || interval_b.y < interval_a.x);
 }
-
-// 圆与多边形的碰撞检测，分离轴算法
 static IntersectData IntersectCirclePolygon(
     const oeVec2& circle_center, const float& circle_radius,
     const oeVec2 polygon_mass_center, const oeVec2 polygon_vertices[], const int vertices_count
 ) {
     IntersectData data;
     data.depth = std::numeric_limits<float>::max();
+    data.Collision = true;  // 默认假设发生碰撞
+
+    // 计算圆形在任意轴上的投影
+    auto ProjectCircle = [&](const oeVec2& axis) -> oeVec2 {
+        float projection = oeVec2::dot(circle_center, axis);
+        return oeVec2(projection - circle_radius, projection + circle_radius);
+    };
+
+    // 判断两个投影区间是否重叠
+    auto Overlaps = [](const oeVec2& proj_a, const oeVec2& proj_b) -> bool {
+        return !(proj_a.y < proj_b.x || proj_b.y < proj_a.x);
+    };
 
     // 遍历多边形的每条边，检查边的法向量作为分离轴
-    for (int i = 0; i < vertices_count; ++i) {
+    for (int i = 0; i < vertices_count && data.Collision; ++i) {
         oeVec2 v_a = polygon_vertices[i];
         oeVec2 v_b = polygon_vertices[(i + 1) % vertices_count];
 
@@ -112,12 +122,17 @@ static IntersectData IntersectCirclePolygon(
         oeVec2 axis = oeVec2(-edge_vector.y, edge_vector.x); // 左手法则
         axis.normalize();
 
+        // 调试输出
+        std::cout << "Edge from " << v_a << " to " << v_b << "\n";
+        std::cout << "Normal: " << axis << "\n";
+
         // 计算多边形和圆在该轴上的投影
         oeVec2 project_polygon = ProjectVertices(axis, polygon_vertices, vertices_count);
-        oeVec2 project_circle = ProjectCircle(circle_center, circle_radius, axis);
+        oeVec2 project_circle = ProjectCircle(axis);
 
         // 判断投影是否重叠，如果不重叠说明没发生碰撞
-        if (!overlaps(project_polygon, project_circle)) {
+        if (!Overlaps(project_polygon, project_circle)) {
+            data.Collision = false;
             return data;  // 没有重叠，返回
         }
 
@@ -131,70 +146,38 @@ static IntersectData IntersectCirclePolygon(
         }
     }
 
-    // 检查从多边形的每个顶点到圆心的向量作为潜在的分离轴
-    for (int i = 0; i < vertices_count; ++i) {
-        oeVec2 vertex = polygon_vertices[i];
-        oeVec2 axis = vertex - circle_center;
-        float length_squared = axis.LengthSquared();
+    // 如果所有轴上都有重叠，设置碰撞结果
+    if (data.Collision) {
+        oeVec2 direction_vector = circle_center - polygon_mass_center;
 
-        // 只有当顶点到圆心的距离大于圆的半径时，才将其作为分离轴
-        if (length_squared > circle_radius * circle_radius) {
-            axis.normalize();
-
-            // 计算多边形和圆在该轴上的投影
-            oeVec2 project_polygon = ProjectVertices(axis, polygon_vertices, vertices_count);
-            oeVec2 project_circle = ProjectCircle(circle_center, circle_radius, axis);
-
-            // 判断投影是否重叠，如果不重叠说明没发生碰撞
-            if (!overlaps(project_polygon, project_circle)) {
-                return data;  // 没有重叠，返回
-            }
-
-            // 如果重叠，计算投影的重叠深度
-            float axis_depth = std::min(project_circle.y - project_polygon.x, project_polygon.y - project_circle.x);
-
-            // 如果深度小于当前最小深度，则更新法向量和深度
-            if (axis_depth < data.depth) {
-                data.depth = axis_depth;
-                data.normal = axis;
-            }
+        // 如果法向量需要反转，确保最终结果正确
+        if (oeVec2::dot(direction_vector, data.normal) < 0) {
+            data.normal = -data.normal;
         }
     }
 
-    // 如果所有轴上都有重叠，设置碰撞结果
-    data.Collision = true;
-    oeVec2 direction_vector = circle_center - polygon_mass_center;
-
-    // 如果法向量需要反转，确保最终结果正确
-    if (oeVec2::dot(direction_vector, data.normal) < 0) {
-        data.normal = -data.normal;
-    }
     return data;
 }
-
 static IntersectData IntersectPolygons(
     const oeVec2& mass_center_a, const oeVec2* vertices_a, int verticesA_count,
     const oeVec2& mass_center_b, const oeVec2* vertices_b, int verticesB_count
 ) {
     // 检查输入的多边形是否有足够的顶点
     if (verticesA_count < 3 || verticesB_count < 3) {
-        // 处理退化多边形
-        IntersectData data;
-        data.Collision = false;
+        IntersectData data = { false, 0.0f, oeVec2(0, 0) };
         return data;
     }
 
-    IntersectData data;
-    data.depth = std::numeric_limits<float>::max();
-   
-    // 提前计算质心方向向量
-    auto CheckAxis = [&](const oeVec2& axis, const oeVec2 vertices_a[], int verticesA_count, const oeVec2 vertices_b[], int verticesB_count) {
+    IntersectData data = { true, std::numeric_limits<float>::max(), oeVec2(0, 0) };
+
+    auto CheckAxis = [&](const oeVec2& axis) -> bool {
         // 计算多边形在该轴上的投影
         oeVec2 proj_a = ProjectVertices(axis, vertices_a, verticesA_count);
         oeVec2 proj_b = ProjectVertices(axis, vertices_b, verticesB_count);
 
         // 判断投影是否重叠
         if (proj_a.y < proj_b.x || proj_b.y < proj_a.x) {
+            data.Collision = false;
             return false;
         }
 
@@ -205,16 +188,12 @@ static IntersectData IntersectPolygons(
         if (axis_depth < data.depth) {
             data.depth = axis_depth;
             data.normal = axis;
-
         }
         return true;
         };
 
-    // 缓存多边形B的投影结果
-    std::vector<oeVec2> projections_b;
-
     // 遍历多边形A的每条边
-    for (int i = 0; i < verticesA_count; ++i) {
+    for (int i = 0; i < verticesA_count && data.Collision; ++i) {
         oeVec2 v_a = vertices_a[i];
         oeVec2 v_b = vertices_a[(i + 1) % verticesA_count];
 
@@ -224,16 +203,13 @@ static IntersectData IntersectPolygons(
         axis.normalize();
 
         // 检查是否重叠
-        if (!CheckAxis(axis, vertices_a, verticesA_count, vertices_b, verticesB_count)) {
+        if (!CheckAxis(axis)) {
             return data; // 没有重叠，返回
         }
-
-        // 缓存多边形B的投影
-        projections_b.push_back(ProjectVertices(axis, vertices_b, verticesB_count));
     }
 
     // 遍历多边形B的每条边
-    for (int i = 0; i < verticesB_count; ++i) {
+    for (int i = 0; i < verticesB_count && data.Collision; ++i) {
         oeVec2 v_a = vertices_b[i];
         oeVec2 v_b = vertices_b[(i + 1) % verticesB_count];
 
@@ -242,23 +218,20 @@ static IntersectData IntersectPolygons(
         oeVec2 axis = oeVec2(-edge_vector.y, edge_vector.x); // 左手法则
         axis.normalize();
 
-        // 使用缓存的多边形A的投影
-        oeVec2 proj_a = projections_b[i % projections_b.size()];
-        oeVec2 proj_b = ProjectVertices(axis, vertices_b, verticesB_count);
-
         // 检查是否重叠
-        if (!CheckAxis(axis, vertices_a, verticesA_count, vertices_b, verticesB_count)) {
+        if (!CheckAxis(axis)) {
             return data; // 没有重叠，返回
         }
     }
 
     // 如果所有轴上都有重叠，设置碰撞结果
-    data.Collision = true;
-    oeVec2 direction_vector = mass_center_b - mass_center_a;
+    if (data.Collision) {
+        oeVec2 direction_vector = mass_center_b - mass_center_a;
 
-    // 如果法向量需要反转，确保最终结果正确
-    if (oeVec2::dot(direction_vector, data.normal) < 0) {
-        data.normal = -data.normal;
+        // 如果法向量需要反转，确保最终结果正确
+        if (oeVec2::dot(direction_vector, data.normal) < 0) {
+            data.normal = -data.normal;
+        }
     }
 
     return data;
@@ -277,17 +250,17 @@ static IntersectData  Collide(oeBody& body_a, oeBody& body_b) {
             return intersect_data;
         }
         else if (shape_type_b == CIRCLE) {
-            intersect_data = IntersectCirclePolygon(body_b.mass_center_, body_b.radius_or_width_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_);
+            intersect_data = IntersectCirclePolygon(body_b.mass_center_, body_b.radius_or_half_width_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_);
             return intersect_data;
         }
     }
     else if (shape_type_a == CIRCLE) {
         if (shape_type_b == CIRCLE) {
-            intersect_data =IntersectCircles(body_a.mass_center_, body_a.radius_or_width_, body_b.mass_center_, body_b.radius_or_width_);
+            intersect_data =IntersectCircles(body_a.mass_center_, body_a.radius_or_half_width_, body_b.mass_center_, body_b.radius_or_half_width_);
             return intersect_data;
         }
         else if (shape_type_b == POLTGON|| shape_type_b == BOX) {
-            intersect_data = IntersectCirclePolygon(body_a.mass_center_, body_a.radius_or_width_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_);
+            intersect_data = IntersectCirclePolygon(body_a.mass_center_, body_a.radius_or_half_width_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_);
             return intersect_data;
         }
     }

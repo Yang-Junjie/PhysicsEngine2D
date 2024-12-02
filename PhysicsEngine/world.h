@@ -9,30 +9,33 @@
 
 class oeWorld {
 private:
-	
-
+	oeVec2 gravity_ = { 0.0f,-10.0f };
+	Renderer* renderer_;
 	int id_count = -1;
 	std::vector<oeBody> bodys_list_;
-	oeVec2 gravity = { 0.0f,-10.0f };
+	std::vector<std::pair<oeBody&, oeBody&>> contact_body_;
 
 	void SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_vector);
 	void BroadPhase();
 	void NarrowPhase();
-	std::vector<std::pair<oeBody&, oeBody&>> contact_body_;
+	
 public:
 	
-	oeWorld();
+	oeWorld(Renderer* renderer);
 	~oeWorld();
 	
 	
-	void CreatCircle(CircleType data);
-	void CreatBox(BoxType data);
-	oeBody& FindBody(const int id);
+	void CreatCircle(CircleType type_data, Property prop_data);
+	void CreatBox(BoxType type_data, Property prop_data);
+	void CreatPolygon(PolygonType type_data,Property prop_data);
+	void RenderBody();
+	void RenderAABB();
+	void RenderNormal(const oeBody& body,const oeVec2& vec);
 
-	void RenderBody(Renderer& renderer);
-	void RenderAABB(Renderer& renderer);
-	void Interation(float time);
 	int GetBodyNum() const;
+	oeBody* FindBody(const int id);
 	std::vector<oeBody>* GetBodysList();
 
+
+	void Interation(float time);
 };

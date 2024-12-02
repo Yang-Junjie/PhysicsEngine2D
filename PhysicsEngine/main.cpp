@@ -19,8 +19,9 @@
 #include "world.h"
 #include "collision.h"
 
-oeWorld world;
 Renderer renderer;
+oeWorld world(&renderer);
+
 bool lock120FPS = true;
 bool intersect = false;
 static int bodyid = 0; // 创建一个变量来保存输入的整型值
@@ -28,36 +29,46 @@ static int bodyid = 0; // 创建一个变量来保存输入的整型值
 oeBody* selectedBody = nullptr;
 
 static void dome1() {
+    Property prop_data;
     for (int i = 0; i < 1; i++) {
         for (int j = 0; j < 1; j++) {
             BoxType data;
             data.position += oeVec2(0.15f * i, 0.15f * j);
-            world.CreatBox(data);
+            world.CreatBox(data, prop_data);
         }
     }
 }
 
 static void dome2() {
+    Property prop_data;
     BoxType data;
-    world.CreatBox(data);
-
-    
-    world.CreatBox(data);
-    world.FindBody(1).Move({ 0.5f,0.0f });
+    world.CreatBox(data, prop_data);
+    world.CreatBox(data, prop_data);
+    world.FindBody(1)->Move({ 0.0f,0.5f });
 
     CircleType data1;
-    world.CreatCircle(data1);
-    world.FindBody(2).Move({ -0.5f,0.0f });
-    world.CreatCircle(data1);
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(2)->Move({ -0.5f,0.0f });
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(3)->Move({ -0.5f,0.5f });
+
+    PolygonType data2;
+
+    world.CreatPolygon(data2, prop_data);
+    world.FindBody(4)->Move({ 0.0f,0.5f });
+
+    world.CreatPolygon(data2, prop_data);
+    world.FindBody(5)->Move({ 0.0f,0.5f });
 }
 
 static void dome3() {
     int count = 0;
+    Property prop_data;
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 2; j++) {
             BoxType data;
             data.position += oeVec2(0.5f * i, 0.5f * j);
-            world.CreatBox(data);
+            world.CreatBox(data, prop_data);
             //world.FindBody(count).Rotation(oeVec2::AngleToRadian(45));
             count++;
         }
@@ -103,7 +114,7 @@ int main() {
 
         // 初始化选中的物体
         if (world.GetBodyNum()>0) {
-            selectedBody = &world.FindBody(0);
+            selectedBody = world.FindBody(0);
         }
 
         while (!window.shouldClose()) {
@@ -143,7 +154,7 @@ int main() {
 
            // ContorlAllBody();
 
-            world.RenderBody(renderer);
+            world.RenderBody();
 
             // ImGui rendering
             {
@@ -157,16 +168,19 @@ int main() {
                 // 勾选框
                 ImGui::Checkbox("drawAABB", &checkbox_state);
                 if (checkbox_state) { 
-                    world.RenderAABB(renderer);
+                    world.RenderAABB();
                     
                 }
                 
                 ImGui::Checkbox("Lock 120FPS", &lock120FPS);
                 ImGui::InputInt("Find body value", &bodyid);
                 if (bodyid + 1 <= world.GetBodyNum() && bodyid>=0) {
-                    ImGui::Text("Body %d, position:(%.3f, %.3f)", bodyid, world.FindBody(bodyid).mass_center_.x, world.FindBody(bodyid).mass_center_.y);
-                    ImGui::Text("Body %d, aabbmax:(%.3f, %.3f)", bodyid, world.FindBody(bodyid).aabb_.max.x, world.FindBody(bodyid).aabb_.max.y);
-                    ImGui::Text("Body %d, aabbmin:(%.3f, %.3f)", bodyid, world.FindBody(bodyid).aabb_.min.x, world.FindBody(bodyid).aabb_.min.y);
+                    ImGui::Text("Body %d, position:(%.3f, %.3f),mass:%.3f", bodyid, world.FindBody(bodyid)->mass_center_.x, world.FindBody(bodyid)->mass_center_.y, world.FindBody(bodyid)->mass_);
+                    ImGui::Text("volume:%.3f,density:%.3f", world.FindBody(bodyid)->volume_, world.FindBody(bodyid)->density_);
+
+                    ImGui::Text("Body %d, aabbmax:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.max.x, world.FindBody(bodyid)->aabb_.max.y);
+                    ImGui::Text("Body %d, aabbmin:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.min.x, world.FindBody(bodyid)->aabb_.min.y);
+                    //ImGui::Text("Body %d, mass:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.min.x, world.FindBody(bodyid)->aabb_.min.y);
 
 
                 }
@@ -177,7 +191,7 @@ int main() {
                 if (bodyid != prevBodyid) {
                     prevBodyid = bodyid;
                     if (bodyid >= 0 && bodyid < world.GetBodyNum()) {
-                        selectedBody = &world.FindBody(bodyid);
+                        selectedBody = world.FindBody(bodyid);
                     }
                     else {
                         selectedBody = nullptr;

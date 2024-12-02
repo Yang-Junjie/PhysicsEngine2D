@@ -29,13 +29,12 @@ public:
 
 	//以下是物体的特征值
 	//物体的id
-	int body_id_ = 0;
+	int body_id_ = -1;
 
 	//物体的形状
 	Shape shape_ = NONE;
 
-	//圆形物体专属属性半径
-	float radius_or_width_ = 0.0f;
+	float radius_or_half_width_ = 0.0f;
 
 	//物体的颜色分别对应，rgba
 	float color_[4] = { 0,0,0,0 };
@@ -51,11 +50,24 @@ public:
 	//aabb包围盒的顶点
 	oeAABB aabb_;
 
+	//aabb包围盒的颜色
 	float aabb_color_[4] = { 0,0,0,0 };
 
+	//是否是静止物体
 	bool stationary_ = false;
+
+
+
+
+
 	
-	float color_box_[4] = {1, 1, 1, 1};
+	float density_ = 0.1f;
+
+	float mass_ = 1.0f;
+
+	float volume_ = 1.0f;
+
+	float area_ = 1.0f;
 	struct shuxing
 	{
 		
@@ -109,11 +121,11 @@ public:
 
 	//Circle Box构造函数
 	//依次传入参数：shape,radius，color,mass>0,mass_center,body_id（可选，但不能使用重复id可通过body_list查看所有物体的id）
-	oeBody(Shape shape, float radius_or_width, float* color,oeVec2 mass_center);
+	oeBody(Shape shape, float radius_or_width, float* color,oeVec2 mass_center,float mass);
 
 	//Polygon构造函数，重载函数
 	//依次传入参数：shape,vertices，color,mass>0,mass_center,body_id（可选，但不能使用重复id可通过body_list查看所有物体的id）
-	oeBody(Shape shape, oeVec2* vertices,int vertices_count, float* color);
+	oeBody(Shape shape, oeVec2* vertices,int vertices_count, float* color, float mass);
 
 
 	void Move(const oeVec2 v);
