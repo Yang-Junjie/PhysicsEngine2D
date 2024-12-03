@@ -28,51 +28,55 @@ static int bodyid = 0; // 创建一个变量来保存输入的整型值
 
 oeBody* selectedBody = nullptr;
 
-static void dome1() {
-    Property prop_data;
-    for (int i = 0; i < 1; i++) {
-        for (int j = 0; j < 1; j++) {
-            BoxType data;
-            data.position += oeVec2(0.15f * i, 0.15f * j);
-            world.CreatBox(data, prop_data);
-        }
-    }
-}
-
 static void dome2() {
     Property prop_data;
-    BoxType data;
-    world.CreatBox(data, prop_data);
-    world.CreatBox(data, prop_data);
-    world.FindBody(1)->Move({ 0.0f,0.5f });
-
     CircleType data1;
     world.CreatCircle(data1, prop_data);
-    world.FindBody(2)->Move({ -0.5f,0.0f });
+    world.FindBody(0)->Move({ -0.5f,0.0f });
     world.CreatCircle(data1, prop_data);
-    world.FindBody(3)->Move({ -0.5f,0.5f });
+    world.FindBody(1)->Move({ -0.5f,0.5f });
 
     PolygonType data2;
-
+    PolygonType data3;
+    data3.vertces_count = 5;
+    data3.vertices[4] = {0.0f,0.2f};
     world.CreatPolygon(data2, prop_data);
-    world.FindBody(4)->Move({ 0.0f,0.5f });
+    world.FindBody(2)->Move({ 0.0f,0.5f });
 
-    world.CreatPolygon(data2, prop_data);
-    world.FindBody(5)->Move({ 0.0f,0.5f });
+    world.CreatPolygon(data3, prop_data);
+    world.FindBody(3)->Move({ 0.0f,0.5f });
 }
 
 static void dome3() {
-    int count = 0;
+    int count = 1;
+    PolygonType data3;
+    CircleType data1;
     Property prop_data;
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            BoxType data;
-            data.position += oeVec2(0.5f * i, 0.5f * j);
-            world.CreatBox(data, prop_data);
-            //world.FindBody(count).Rotation(oeVec2::AngleToRadian(45));
+
+
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(0)->Move({ -2.30f,-4.0f });
+    for (int i = 0; i < 25; i++) {
+        for (int j = 0; j < 4; j++) {
+
+            world.CreatCircle(data1, prop_data);
+            world.FindBody(count)->Move({ -(i + 1) * 0.21f, -(j + 1) * 0.21f });
             count++;
         }
     }
+    
+    for (int i = 0; i < 25; i++) {
+        for (int j = 0; j <4; j++) {
+
+            world.CreatPolygon(data3, prop_data);
+            world.FindBody(count)->Move({ -(i)*0.21f, j*0.21f });
+            count++;
+        }
+    }
+
+   
+   
+    
 }
 
 static void ContorlAllBody() {
@@ -107,7 +111,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome2();
+        dome3();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -171,23 +175,20 @@ int main() {
                     world.RenderAABB();
                     
                 }
-                
                 ImGui::Checkbox("Lock 120FPS", &lock120FPS);
                 ImGui::InputInt("Find body value", &bodyid);
                 if (bodyid + 1 <= world.GetBodyNum() && bodyid>=0) {
-                    ImGui::Text("Body %d, position:(%.3f, %.3f),mass:%.3f", bodyid, world.FindBody(bodyid)->mass_center_.x, world.FindBody(bodyid)->mass_center_.y, world.FindBody(bodyid)->mass_);
-                    ImGui::Text("volume:%.3f,density:%.3f", world.FindBody(bodyid)->volume_, world.FindBody(bodyid)->density_);
-
-                    ImGui::Text("Body %d, aabbmax:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.max.x, world.FindBody(bodyid)->aabb_.max.y);
-                    ImGui::Text("Body %d, aabbmin:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.min.x, world.FindBody(bodyid)->aabb_.min.y);
-                    //ImGui::Text("Body %d, mass:(%.3f, %.3f)", bodyid, world.FindBody(bodyid)->aabb_.min.x, world.FindBody(bodyid)->aabb_.min.y);
-
+                    oeBody* body = world.FindBody(bodyid);
+                    ImGui::Text("Body %d position:(%.3f,%.3f) mass:%.3f", bodyid, body->mass_center_.x, body->mass_center_.y, body->GetMass());
+                    ImGui::Text("Shape:%d volume:%.3f density:%.3f", body->shape_, body->GetVolume(), body->GetDensity());
+                    ImGui::Text("abbmax:(%.3f,%.3f) aabbmin:(%.3f,%.3f)", body->aabb_.max.x, body->aabb_.max.y, body->aabb_.min.x, body->aabb_.min.y);
+                    ImGui::Text("velocity:(%.3f,%.3f)acc:(%.3f,%.3f)", body->GetVelocity().x, body->GetVelocity().y, body->GetAcceleration().x, body->GetAcceleration().y);
 
                 }
                 else {
                     ImGui::Text("Body %d is nonexistence", bodyid);
                 }
-                static int prevBodyid = -1; // 用于记录上一次的 bodyid
+                static int prevBodyid = -1; // 用于记录上一次的 bodyid5
                 if (bodyid != prevBodyid) {
                     prevBodyid = bodyid;
                     if (bodyid >= 0 && bodyid < world.GetBodyNum()) {
@@ -216,7 +217,7 @@ int main() {
                 }
             }
             
-            world.Interation(deltaTime);
+            world.Interation(deltaTime,4);
             // Swap buffers and poll events
             window.update();
         }
@@ -234,25 +235,25 @@ int main() {
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (selectedBody != nullptr) {
-            float moveSpeed = 0.01f; // 移动速度
+            float moveSpeed = 1000; // 移动速度
             switch (key) {
             case GLFW_KEY_W:
-                selectedBody->Move(oeVec2(0, moveSpeed));
+                selectedBody->SetAcceleration(oeVec2(0, moveSpeed));
                 break;
             case GLFW_KEY_S:
-                selectedBody->Move(oeVec2(0, -moveSpeed));
+                selectedBody->SetAcceleration(oeVec2(0, -moveSpeed));
                 break;
             case GLFW_KEY_A:
-                selectedBody->Move(oeVec2(-moveSpeed, 0));
+                selectedBody->SetAcceleration(oeVec2(-moveSpeed, 0));
                 break;
             case GLFW_KEY_D:
-                selectedBody->Move(oeVec2(moveSpeed, 0));
+                selectedBody->SetAcceleration(oeVec2(moveSpeed, 0));
                 break;
             case GLFW_KEY_R:
-                selectedBody->Rotation(oeVec2::AngleToRadian(-45));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(-1));
                 break;
             case GLFW_KEY_Q:
-                selectedBody->Rotation(oeVec2::AngleToRadian(45));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(1));
                 break;
             case GLFW_KEY_RIGHT:
                 

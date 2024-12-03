@@ -20,6 +20,9 @@ struct oeVec2
     oeVec2() :x(0.0f), y(0.0f) {};
     oeVec2(float x, float y) : x(x), y(y) {}
 
+    static oeVec2 Zero() {
+        return oeVec2{ 0.0f,0.0f };
+    }
     friend std::ostream& operator<<(std::ostream& os, const oeVec2& p) {
         os << "(" << p.x << ", " << p.y << ")";
         return os; // 返回输出流以便链式调用  
@@ -193,8 +196,12 @@ struct oeVec2
     }
 
     //非常小判断
-    static inline bool NearlyEqualFv(const oeVec2 a, const oeVec2 b) {
+    static inline bool NearlyEqualVec(const oeVec2 a, const oeVec2 b) {
         return oeVec2::DistanceSquared(a, b) < VerySmallAmount * VerySmallAmount;
+    }
+
+    inline bool NearlyEqual(const oeVec2& other, float epsilon = 1e-6f) const {
+        return std::abs(x - other.x) <= epsilon && std::abs(y - other.y) <= epsilon;
     }
 
     //非常小判断

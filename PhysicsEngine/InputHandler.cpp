@@ -44,7 +44,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 // 实现鼠标滚轮回调函数
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    OE_ZOOM += yoffset * 0.03f*OE_ZOOM; // 调整缩放因子
+    OE_ZOOM += static_cast<float>(yoffset * 0.03f*OE_ZOOM); // 调整缩放因子
     if (OE_ZOOM < 0.03f) {
         OE_ZOOM = 0.03f; // 防止缩放因子过小
     }

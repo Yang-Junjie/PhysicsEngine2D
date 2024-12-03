@@ -20,13 +20,11 @@ private:
 	void NarrowPhase();
 	
 public:
-	
 	oeWorld(Renderer* renderer);
 	~oeWorld();
 	
 	
 	void CreatCircle(CircleType type_data, Property prop_data);
-	void CreatBox(BoxType type_data, Property prop_data);
 	void CreatPolygon(PolygonType type_data,Property prop_data);
 	void RenderBody();
 	void RenderAABB();
@@ -36,6 +34,5 @@ public:
 	oeBody* FindBody(const int id);
 	std::vector<oeBody>* GetBodysList();
 
-
-	void Interation(float time);
+	void Interation(float time,int iterations);
 };
