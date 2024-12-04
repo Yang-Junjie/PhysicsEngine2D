@@ -81,7 +81,12 @@ void oeWorld::Interation(float time,int iterations)
 	NarrowPhase();
 }
 
- int oeWorld::GetBodyNum() const 
+void oeWorld::SetGravityAcc(const oeVec2 g)
+{
+	gravity_acc_ = g;
+}
+
+int oeWorld::GetBodyNum() const
 {
 	return id_count+1;
 }
@@ -157,20 +162,19 @@ void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_
 	if (body_a.GetBodyState()) {
 		body_b.Move(separation_vector / 2);
 		
-		RenderNormal(body_b, separation_vector * 5.0f / 2);
-		///std::cout << separation_vector << std::endl;
+		//RenderNormal(body_b, separation_vector * 5.0f / 2);
 	}
 	else if (body_b.GetBodyState()) {
 		body_a.Move(-separation_vector / 2);
 		
-		RenderNormal(body_b, -separation_vector * 5.0f / 2);
+		//RenderNormal(body_b, -separation_vector * 5.0f / 2);
 
 	}
 	else {
 		body_a.Move(-separation_vector / 2);
 		body_b.Move(separation_vector / 2);
-		RenderNormal(body_a, -separation_vector*5.0f / 2);
-		RenderNormal(body_b, separation_vector * 5.0f / 2);
+		//RenderNormal(body_a, -separation_vector*5.0f / 2);
+		//RenderNormal(body_b, separation_vector * 5.0f / 2);
 	}
 }
 
@@ -213,6 +217,12 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 	oeVec2 normal = contact.intersect_data.normal;
 	oeVec2 contact1 = contact.contact_data.contact1;
 	oeVec2 contact2 = contact.contact_data.contact2;
+
+	//////这里强行针对bug处理，咋也不知道为什么，可能是SAT实现错了，以后再修,这个bug很严重必须修
+	if (bodyA->shape_ == CIRCLE && bodyA->stationary_ == false && bodyB->shape_ == POLYGON && bodyB->stationary_ == true ||
+		bodyB->shape_ == CIRCLE && bodyB->stationary_ == false && bodyA->shape_ == POLYGON && bodyA->stationary_ == true) {
+		normal = -normal;
+	}
 
 	const int contactCount = contact.contact_data.contact_count;
 

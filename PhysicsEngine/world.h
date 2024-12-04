@@ -9,7 +9,7 @@
 
 class oeWorld {
 private:
-	oeVec2 gravity_ = { 0.0f,-10.0f };
+	oeVec2 gravity_acc_ = { 0.0f,0.0f };
 	Renderer* renderer_;
 	int id_count = -1;
 	std::vector<oeBody> bodys_list_;
@@ -30,6 +30,8 @@ public:
 	void RenderAABB();
 	void RenderNormal(const oeBody& body,const oeVec2& vec);
 
+
+	void SetGravityAcc(const oeVec2 g);
 	int GetBodyNum() const;
 	oeBody* FindBody(const int id);
 	std::vector<oeBody>* GetBodysList();

@@ -41,7 +41,7 @@ void oeBody::Update(float time, int iterations)
 {
 	time /= iterations;
 	if (stationary_)return;
-	velocity_ += acceleration_ * time;
+	velocity_ += (acceleration_ + oeVec2{0.0f,-0.0f}) * time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
 	
@@ -59,20 +59,23 @@ oeBody::oeBody(Shape shape, float radius, float* color, oeVec2 mass_center, floa
 	shape_(shape), radius_(radius),mass_center_(mass_center), stationary_(body_state),restitution_(restitution),
 	inherent_static_friction_(inherent_static_friction),inherent_dynamic_friction_(inherent_dynamic_friction)
 {	
+	mass_ = 0.0f;
+	rotational_inertia_ = 0.0f;
+
 	if (!body_state) {
 		mass_ = mass;
-		rotational_inertia_ = (1.0f / 12.0f) * mass * radius * radius;
-			
+		rotational_inertia_ = (1.0f / 12.0f) * mass * radius * radius;	
 	}
+
 		/*if (body_state) {
 			density_ = mass / volume_;
 		}*/
-	if (mass > 0) {
-		inverse_mass_ = 1.0f / mass;
-	}
-	if (rotational_inertia_ > 0) {
-		inverse_rotational_inertia_ = 1.0f / rotational_inertia_;
-	}
+	
+	inverse_mass_ = mass_ >0 ? 1.0f / mass_ : 0.0f;
+	
+	
+	inverse_rotational_inertia_ = rotational_inertia_>0 ? 1.0f / rotational_inertia_:0.0f;
+	
 	area_ = static_cast<float>(2.0f * M_PI * radius);
 	volume_ = static_cast<float>(M_PI * radius * radius);
 	density_ = mass / volume_;
@@ -84,17 +87,17 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 	shape_(shape), vertices_count_(vertices_count),stationary_(body_state),restitution_(restitution), 
 	inherent_static_friction_(inherent_static_friction), inherent_dynamic_friction_(inherent_dynamic_friction)
 {
+	mass_ = 0.0f;
+	rotational_inertia_ = 0.0f;
 	if (!body_state) {
 		mass_ = mass;
 		float width = (vertices[3].x - vertices[0].x);
-		rotational_inertia_ = (1.0f / 12.0f) * mass * (width * width + width * width);//正方形的转动惯量，明天实现多边形的转动惯量
+		float height = (vertices[0].y - vertices[1].y);
+		rotational_inertia_ = (1.0f / 12.0f) * mass * (width * height + width * height);//正方形的转动惯量，明天实现多边形的转动惯量
 	}
-	if (mass > 0) {
-		inverse_mass_ = 1.0f / mass;
-	}
-	if (rotational_inertia_ > 0) {
-		inverse_rotational_inertia_ = 1.0f / rotational_inertia_;
-	}
+	inverse_mass_ = mass_ > 0 ? 1.0f / mass_ : 0.0f;
+	inverse_rotational_inertia_ = rotational_inertia_ > 0 ? 1.0f / rotational_inertia_ : 0.0f;
+
 	for (int i = 0; i < 4; i++)color_[i] = color[i];
 	for (int i = 0; i < vertices_count; i++)vertices_[i] = vertices[i];
 	if (vertices_count == 3) {
@@ -124,7 +127,28 @@ void oeBody::Move(const oeVec2 v)
 		mass_center_ = GetPolygonCentroid();
 	}
 }
+void oeBody::MoveTo(const oeVec2 v)
+{
+	if (this->shape_ == CIRCLE) {
+		this->mass_center_ = v;
+	}
+	else if (this->shape_ == POLYGON) {
+		//先将多边形的质心平移至原点，在将物体平移值目标位置
 
+		int vertices_num = vertices_count_;
+		oeVec2 origin = this->mass_center_;
+		for (int i = 0; i < vertices_count_; ++i) {
+			vertices_[i].x -= origin.x;
+			vertices_[i].y -= origin.y;
+		}
+		// 平移回新的位置
+		for (int i = 0; i < vertices_count_; ++i) {
+			vertices_[i].x += v.x;
+			vertices_[i].y += v.y;
+		}
+		this->mass_center_ = GetPolygonCentroid();
+	}
+}
 
 void oeBody::Rotation(const float radian)
 {

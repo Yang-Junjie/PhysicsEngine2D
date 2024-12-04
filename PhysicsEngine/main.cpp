@@ -28,55 +28,101 @@ static int bodyid = 0; // 创建一个变量来保存输入的整型值
 
 oeBody* selectedBody = nullptr;
 
-static void dome2() {
-    Property prop_data;
-    CircleType data1;
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(0)->Move({ -0.5f,0.0f });
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(1)->Move({ -0.5f,0.5f });
-
-    PolygonType data2;
-    PolygonType data3;
-    data3.vertces_count = 5;
-    data3.vertices[4] = {0.0f,0.2f};
-    world.CreatPolygon(data2, prop_data);
-    world.FindBody(2)->Move({ 0.0f,0.5f });
-
-    world.CreatPolygon(data3, prop_data);
-    world.FindBody(3)->Move({ 0.0f,0.5f });
-}
-
-static void dome3() {
+//金字塔
+static void dome1() {
     int count = 1;
-    PolygonType data3;
-    CircleType data1;
     Property prop_data;
-
-
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(0)->Move({ -2.30f,-4.0f });
-    for (int i = 0; i < 25; i++) {
-        for (int j = 0; j < 4; j++) {
-
-            world.CreatCircle(data1, prop_data);
-            world.FindBody(count)->Move({ -(i + 1) * 0.21f, -(j + 1) * 0.21f });
-            count++;
-        }
-    }
-    
-    for (int i = 0; i < 25; i++) {
-        for (int j = 0; j <4; j++) {
+    PolygonType polygon_data;
+    CircleType data1;
+    PolygonType data3;
+    prop_data.stationary_ = true;
+    polygon_data.vertices[2] = { 10.0f,-0.1f };
+    polygon_data.vertices[3] = { 10.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+    prop_data.stationary_ = false;
+    for (int i = 10; i > 0; i--) {
+        for (int j = 10 - i; j >= 0; j--) {
 
             world.CreatPolygon(data3, prop_data);
-            world.FindBody(count)->Move({ -(i)*0.21f, j*0.21f });
+            world.FindBody(count)->Move({ (i) * 0.2f + j * 0.1f, (j) * 0.2f });
             count++;
         }
     }
+}
 
-   
-   
-    
+
+static void dome2() {
+    int count = 4;
+    Property prop_data;
+    prop_data.inherent_static_friction_ = 0.02;
+    prop_data.inherent_dynamic_friction_ = 0.1;
+    prop_data.restitution_ = 0.01;
+
+    PolygonType polygon_data;
+    prop_data.stationary_ = true;
+    polygon_data.vertices[2] = { 10.0f,-0.1f };
+    polygon_data.vertices[3] = { 10.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
+    polygon_data.vertices[2] = { 6.0f,-0.1f };
+    polygon_data.vertices[3] = { 6.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(1)->MoveTo({ 0.0f,3.0f });
+
+    polygon_data.vertices[2] = { 4.0f,-0.1f };
+    polygon_data.vertices[3] = { 4.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(2)->MoveTo({ 2.5f,2.0f });
+    world.FindBody(2)->Rotation(oeVec2::AngleToRadian(20));
+
+    polygon_data.vertices[2] = { 4.0f,-0.1f };
+    polygon_data.vertices[3] = { 4.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(3)->MoveTo({ -1.0f,1.0f });
+    world.FindBody(3)->Rotation(oeVec2::AngleToRadian(-15));
+
+    polygon_data.vertices[0] = { -0.05f,1.0f };
+    polygon_data.vertices[1] = { -0.05f,-0.1f };
+    polygon_data.vertices[2] = { 0.05f,-0.1f };
+    polygon_data.vertices[3] = { 0.05f,1.0f };
+
+    prop_data.stationary_ = false;
+    for (int i = 0; i < 10; i++) {
+        world.CreatPolygon(polygon_data, prop_data);
+        world.FindBody(count)->MoveTo({ -2.0f + i * 0.5f ,3.41f });
+        
+        count++;
+    }
+    world.FindBody(4)->Rotation(oeVec2::AngleToRadian(-10));
+        
+
+}
+
+
+
+static void dome3() {
+    CircleType data1;
+    Property prop_data;
+    prop_data.inherent_static_friction_ = 0.00f;
+    prop_data.inherent_dynamic_friction_ = 0.0f;
+    prop_data.restitution_ = 1;
+
+    PolygonType polygon_data;
+    prop_data.stationary_ = true;
+    polygon_data.vertices[2] = { 10.0f,-0.1f };
+    polygon_data.vertices[3] = { 10.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.2f });
+
+    prop_data.stationary_ = false;
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(1)->MoveTo({ 0.0f,-0.005f });
+
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(2)->MoveTo({ 1.0f,-0.005f });
+
 }
 
 static void ContorlAllBody() {
@@ -235,7 +281,7 @@ int main() {
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (selectedBody != nullptr) {
-            float moveSpeed = 1000; // 移动速度
+            float moveSpeed = 100; // 移动速度
             switch (key) {
             case GLFW_KEY_W:
                 selectedBody->SetAcceleration(oeVec2(0, moveSpeed));

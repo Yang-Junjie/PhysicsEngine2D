@@ -102,7 +102,7 @@ public:
 
 	//物体的析构函数
 	~oeBody();
-	oeBody();
+	//oeBody();
 
 	//Circle构造函数
 	oeBody(Shape shape, float radius_or_width, float* color,oeVec2 mass_center,float mass,bool state,float restitution,float inherent_static_friction_,float inherent_dynamic_friction_);
@@ -112,6 +112,7 @@ public:
 
 
 	void Move(const oeVec2 v);
+	void MoveTo(const oeVec2 v);
 	void Rotation(const float angle);
 
 	void SetVelocity(const oeVec2 v0);

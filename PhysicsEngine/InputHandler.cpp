@@ -6,7 +6,7 @@ bool rightMousePressed = false;
 bool leftMousePressed = false;
 float lastX = 0.0f, lastY = 0.0f;
 glm::vec2 translation = glm::vec2(0.0f, 0.0f);
-float OE_ZOOM = 1.0f; // 缩放因子
+float OE_ZOOM = 0.2f; // 缩放因子
 
 
 // 实现鼠标按钮回调函数
