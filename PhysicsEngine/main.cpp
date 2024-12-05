@@ -108,10 +108,10 @@ static void dome3() {
     prop_data.inherent_static_friction_ = 0.00f;
     prop_data.inherent_dynamic_friction_ = 0.0f;
     prop_data.restitution_ = 1.0f;
-    
     prop_data.stationary_ = true;
     world.CreatCircle(data1, prop_data);
     world.FindBody(0)->MoveTo({ 0.0f,-0.005f });
+    
    
     PolygonType polygon_data;
     prop_data.stationary_ = false;
@@ -121,7 +121,7 @@ static void dome3() {
     world.FindBody(1)->MoveTo({ 0.0f,-0.23f });
    
   
-    
+   
    /* world.CreatCircle(data1, prop_data);
     world.FindBody(2)->MoveTo({ 1.0f,-0.005f });*/
 
@@ -159,7 +159,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome1();
+        dome3();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间

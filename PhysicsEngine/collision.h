@@ -261,11 +261,10 @@ namespace Intersect {
 
             // 计算圆心到接触点的方向向量
             oeVec2 direction = cp - circle_center;
-           /* 
-            render->drawLine(oeVec2::Zero(), direction, color);
+            
+            /*render->drawLine(oeVec2::Zero(), direction, color);
             render->drawPoint(direction, color);*/
             // 确保法向量指向从圆形到多边形的方向
-           
             if (direction.dot(data.normal) < 0) {
                 data.normal = -data.normal;
             }
@@ -400,20 +399,17 @@ static IntersectData  Collide(oeBody& body_a, oeBody& body_b,Renderer* render) {
     Shape shape_type_a = body_a.shape_;
     Shape shape_type_b = body_b.shape_;
     float color[] = { 1,1,1,1 };
-    if (shape_type_a == POLYGON && shape_type_b == CIRCLE) {
-        std::swap(shape_type_a, shape_type_b);
-    }
-   //std::cout << body_a.body_id_ << body_a.shape_ << "||" << body_b.body_id_ << body_b.shape_<<std::endl;;
+    std::cout << body_a.body_id_ << body_a.shape_ << "||" << body_b.body_id_ << body_b.shape_<<std::endl;;
     if ( shape_type_a == POLYGON) {
         if ( shape_type_b == POLYGON) {
             intersect_data = Intersect::SAT::IntersectPolygons(body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,
                                                body_b.mass_center_, body_b.vertices_,body_b.vertices_count_);
             return intersect_data;
         }
-        /*else if (shape_type_b == CIRCLE) {
-            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_b.mass_center_, body_b.radius_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,render,color);
+        else if (shape_type_b == CIRCLE) {
+            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_b.mass_center_, body_b.radius_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,render,color,true);
             return intersect_data;
-        }*/
+        }
     }
     else if (shape_type_a == CIRCLE) {
         if (shape_type_b == CIRCLE) {
