@@ -17,6 +17,8 @@ public:
     void setClearColor(float r, float g, float b, float a);
     void clear();
 
+    void drawPoint(float x, float y, const float* color);
+    void drawPoint(oeVec2 v, const float* color);
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawRectangle(float x, float y, float width, float height, const float* color);
 

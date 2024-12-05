@@ -7,6 +7,20 @@ Collision：是否碰撞（相交）
 depth:碰撞深度
 normal：分离向量
 */
+
+
+
+struct Contact {
+    const void* shapeA;
+    const void* shapeB;
+    oeVec2 point;
+    oeVec2 normal;
+    double depth;
+
+    Contact(const void* a, const void* b, const oeVec2& p, const oeVec2& n, double d)
+        : shapeA(a), shapeB(b), point(p), normal(n), depth(d) {}
+};
+
 struct IntersectData {
     bool Collision = false;
     float depth = std::numeric_limits<float>::max();
@@ -136,7 +150,7 @@ static bool IntersectAABB(oeAABB& a, oeAABB& b){
 
 //找到多边形距离点最近的顶点
 static int FindVertexClosestPoint(const oeVec2& point, const oeVec2 vertices[],const int vertices_count) {
-    size_t result = 0;
+    int result = 0;
     float min_distance = std::numeric_limits<float>::max();
     for (size_t i = 0; i < vertices_count; ++i) {
         float distance = oeVec2::Distance(vertices[i], point);
@@ -175,9 +189,9 @@ static bool overlaps(const oeVec2& interval_a, const oeVec2& interval_b) {
 
 
 namespace Intersect {
-
+   
     namespace SAT {
-
+       
         /*圆与圆碰撞检测*/
         static IntersectData IntersectCircles(const oeVec2& center_a, const float& radius_a, const oeVec2& center_b, const float& radius_b) {
             IntersectData data;
@@ -199,14 +213,15 @@ namespace Intersect {
 
             return data;
         }
+        
 
-        /*圆与多边形碰撞检测*/
         static IntersectData IntersectCirclePolygon(
-            const oeVec2& circle_center, const float& circle_radius,
-            const oeVec2& polygon_mass_center, const oeVec2 polygon_vertices[], const int& vertices_count
+            const oeVec2& circle_center, float circle_radius,
+            const oeVec2& polygon_mass_center, const oeVec2 polygon_vertices[], int vertices_count,
+             Renderer* render,float color[],bool reverse_normal = false
         ) {
             IntersectData data;
-            data.normal = { 0.0f,0.0f };
+            data.normal = { 0.0f, 0.0f };
             data.depth = std::numeric_limits<float>::max();
 
             // 遍历多边形的每条边
@@ -218,22 +233,19 @@ namespace Intersect {
                 oeVec2 edge = vb - va;
                 oeVec2 axis(-edge.y, edge.x);
                 axis.normalize();
-
+                
+               
                 // 计算多边形和圆在该轴上的投影
-
                 auto project_vertices = ProjectVertices(axis, polygon_vertices, vertices_count);
                 auto project_circle = ProjectCircle(circle_center, circle_radius, axis);
 
                 // 判断投影是否重叠，如果不重叠则返回False
-                if (project_vertices.x >= project_circle.y || project_circle.x >= project_vertices.y) {
-                    data.normal = { 0.0f,0.0f };
-                    data.depth = 0.0f;
+                if (!overlaps(project_vertices, project_circle)) {
                     data.Collision = false;
                     return data;
                 }
 
                 // 计算投影的重叠深度
-
                 float axis_depth = std::min(project_circle.y - project_vertices.x, project_vertices.y - project_circle.x);
 
                 // 如果深度小于当前最小深度，则更新法向量和深度
@@ -241,50 +253,34 @@ namespace Intersect {
                     data.depth = axis_depth;
                     data.normal = axis;
                 }
+               
             }
 
             // 找到多边形上距离圆心最近的点
-            int cp_index = FindVertexClosestPoint(circle_center, polygon_vertices, vertices_count);
-            oeVec2 cp = polygon_vertices[cp_index];
+            oeVec2 cp = FindCirclePolygonContactPoint(circle_center, polygon_vertices, vertices_count);
 
-            // 计算该点到圆心的方向向量
-            oeVec2 axis = cp - circle_center;
-            axis.normalize();
-
-            // 计算多边形和圆在该轴上的投影
-            auto project_vertices = ProjectVertices(axis, polygon_vertices, vertices_count);
-            auto project_circle = ProjectCircle(circle_center, circle_radius, axis);
-
-
-            // 判断投影是否重叠，如果不重叠则返回False
-            if (project_vertices.x >= project_circle.y || project_circle.x >= project_vertices.y) {
-                data.normal = { 0.0f,0.0f };
-                data.depth = 0.0f;
-                data.Collision = false;
-                return data;
-            }
-
-            // 计算投影的重叠深度
-            float axis_depth = std::min(project_circle.y - project_vertices.x, project_vertices.y - project_circle.x);
-
-            // 如果深度小于当前最小深度，则更新法向量和深度
-            if (axis_depth < data.depth) {
-                data.depth = axis_depth;
-                data.normal = axis;
-            }
-
-            // 计算重心到圆心的方向向量
-            oeVec2 direction = polygon_mass_center - circle_center;
-
-            // 如果方向向量与法向量的点积为负，则取法向量的反方向
+            // 计算圆心到接触点的方向向量
+            oeVec2 direction = cp - circle_center;
+           /* 
+            render->drawLine(oeVec2::Zero(), direction, color);
+            render->drawPoint(direction, color);*/
+            // 确保法向量指向从圆形到多边形的方向
+           
             if (direction.dot(data.normal) < 0) {
                 data.normal = -data.normal;
             }
-
+            render->drawLine(oeVec2::Zero(), data.normal, color);
+            render->drawPoint(data.normal, color);
+            // 如果需要反转法向量，则进行反转
+            if (reverse_normal) {
+                data.normal = -data.normal;
+            }
+          
             // 返回True和法向量和深度
             data.Collision = true;
             return data;
         }
+
         /*多边形与多边形碰撞检测*/
         static IntersectData IntersectPolygons(
             const oeVec2& mass_center_a, const oeVec2* vertices_a, int verticesA_count,
@@ -375,6 +371,7 @@ static ContactData FindContactPoints(const oeBody& body_a, const oeBody& body_b)
 
     Shape shape_type_a = body_a.shape_;
     Shape shape_type_b = body_b.shape_;
+    
 
     if (shape_type_a == POLYGON) {
         if (shape_type_b == POLYGON) {
@@ -398,21 +395,25 @@ static ContactData FindContactPoints(const oeBody& body_a, const oeBody& body_b)
 
     return result;
 }
-static IntersectData  Collide(oeBody& body_a, oeBody& body_b) {
+static IntersectData  Collide(oeBody& body_a, oeBody& body_b,Renderer* render) {
     IntersectData intersect_data;
     Shape shape_type_a = body_a.shape_;
     Shape shape_type_b = body_b.shape_;
-
+    float color[] = { 1,1,1,1 };
+    if (shape_type_a == POLYGON && shape_type_b == CIRCLE) {
+        std::swap(shape_type_a, shape_type_b);
+    }
+   //std::cout << body_a.body_id_ << body_a.shape_ << "||" << body_b.body_id_ << body_b.shape_<<std::endl;;
     if ( shape_type_a == POLYGON) {
         if ( shape_type_b == POLYGON) {
             intersect_data = Intersect::SAT::IntersectPolygons(body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,
                                                body_b.mass_center_, body_b.vertices_,body_b.vertices_count_);
             return intersect_data;
         }
-        else if (shape_type_b == CIRCLE) {
-            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_b.mass_center_, body_b.radius_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_);
+        /*else if (shape_type_b == CIRCLE) {
+            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_b.mass_center_, body_b.radius_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,render,color);
             return intersect_data;
-        }
+        }*/
     }
     else if (shape_type_a == CIRCLE) {
         if (shape_type_b == CIRCLE) {
@@ -420,7 +421,7 @@ static IntersectData  Collide(oeBody& body_a, oeBody& body_b) {
             return intersect_data;
         }
         else if (shape_type_b == POLYGON) {
-            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_a.mass_center_, body_a.radius_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_);
+            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_a.mass_center_, body_a.radius_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_, render, color);
             return intersect_data;
         }
     }

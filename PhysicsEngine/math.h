@@ -140,6 +140,15 @@ struct oeVec2
         }
     }
 
+    // Normalize the vector
+    oeVec2 normalize() const {
+        float length = len();
+        if (length > 0.0f) {
+            return { x / length, y / length };
+        }
+        return { 0.0f, 0.0f };
+    }
+
     //向量归一化
     static oeVec2 normalize(oeVec2 v) {
         float length = oeVec2::len(v);
@@ -208,4 +217,16 @@ struct oeVec2
     static inline bool NearlyEqual(const float a, const float b) {
         return std::abs(a - b) < VerySmallAmount * VerySmallAmount;
     }
+
+    // Get the direction vector (normalized)
+    oeVec2 GetDirection() const {
+        float length = std::sqrt(x * x + y * y);
+        if (length > 0.0f) {
+            return { x / length, y / length };
+        }
+        return { 0.0f, 0.0f };
+    }
+
+    
+ 
 };

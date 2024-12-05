@@ -250,6 +250,7 @@ void Renderer::drawVector(const oeVec2 start, const oeVec2 vector, const float* 
         color[0], color[1], color[2], color[3]
     };
 
+    
     // Create and bind VAO
     unsigned int vao;
     glGenVertexArrays(1, &vao);
@@ -332,44 +333,6 @@ void Renderer::drawPolygon(const oeVec2* vertices, int vertices_count, const flo
     glDeleteVertexArrays(1, &vao);
 }
 
-//void Renderer::drawPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
-//    if (vertices == nullptr || vertices_count < 3 || color == nullptr) {
-//        return;
-//    }
-//
-//    std::vector<float> colors(vertices_count * 4);
-//    for (size_t i = 0; i < vertices_count; ++i) {
-//        colors[i * 4 + 0] = color[0];
-//        colors[i * 4 + 1] = color[1];
-//        colors[i * 4 + 2] = color[2];
-//        colors[i * 4 + 3] = color[3];
-//    }
-//
-//    // 从对象池获取 VAO 和 VBO
-//    unsigned int vao = objectPool.getVAO();
-//    glBindVertexArray(vao);
-//
-//    unsigned int vbo = objectPool.getVBO();
-//    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//    glBufferData(GL_ARRAY_BUFFER, vertices_count * 2 * sizeof(float), vertices, GL_STATIC_DRAW);
-//
-//    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-//    glEnableVertexAttribArray(0);
-//
-//    unsigned int cbo = objectPool.getVBO(); // 假设颜色数据使用同一个 VBO 池
-//    glBindBuffer(GL_ARRAY_BUFFER, cbo);
-//    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
-//
-//    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-//    glEnableVertexAttribArray(1);
-//
-//    glDrawArrays(GL_TRIANGLE_FAN, 0, static_cast<GLsizei>(vertices_count));
-//
-//    // 回收 VAO 和 VBO 到对象池
-//    objectPool.returnVAO(vao);
-//    objectPool.returnVBO(vbo);
-//    objectPool.returnVBO(cbo);
-//}
 
 
 void Renderer::drawHollowPolygon(const oeVec2* vertices, int vertices_count, const float* color) {
@@ -479,5 +442,102 @@ void Renderer::drawAABB(const oeAABB aabb, const float color[4]) {
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &cbo);
     glDeleteVertexArrays(1, &vao);
+}
+
+void Renderer::drawPoint(float x, float y, const float* color) {
+    // Define the vertex (point) data
+    float vertices[] = {
+        x, y, 0.0f
+    };
+
+    // Define the color data for the point
+    float colors[] = {
+        color[0], color[1], color[2], color[3]
+    };
+
+    // Create and bind VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Create and bind VBO for vertices
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Create and bind VBO for colors
+    unsigned int cbo;
+    glGenBuffers(1, &cbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for colors
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    // Optionally set the point size
+    glPointSize(5.0f); // 设置点的大小
+
+    // Draw the point
+    glDrawArrays(GL_POINTS, 0, 1);
+
+    // Clean up
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &cbo);
+    glDeleteVertexArrays(1, &vao);
+}
+
+void Renderer::drawPoint(oeVec2 v, const float* color)
+{
+// Define the vertex (point) data
+float vertices[] = {
+    v.x, v.y, 0.0f
+};
+
+// Define the color data for the point
+float colors[] = {
+    color[0], color[1], color[2], color[3]
+};
+
+// Create and bind VAO
+unsigned int vao;
+glGenVertexArrays(1, &vao);
+glBindVertexArray(vao);
+
+// Create and bind VBO for vertices
+unsigned int vbo;
+glGenBuffers(1, &vbo);
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+// Set up vertex attribute pointers for positions
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+
+// Create and bind VBO for colors
+unsigned int cbo;
+glGenBuffers(1, &cbo);
+glBindBuffer(GL_ARRAY_BUFFER, cbo);
+glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+// Set up vertex attribute pointers for colors
+glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(1);
+
+// Optionally set the point size
+glPointSize(5.0f); // 设置点的大小
+
+// Draw the point
+glDrawArrays(GL_POINTS, 0, 1);
+
+// Clean up
+glDeleteBuffers(1, &vbo);
+glDeleteBuffers(1, &cbo);
+glDeleteVertexArrays(1, &vao);
 }
 

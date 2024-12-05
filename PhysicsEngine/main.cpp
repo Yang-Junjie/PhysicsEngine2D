@@ -55,9 +55,9 @@ static void dome1() {
 static void dome2() {
     int count = 4;
     Property prop_data;
-    prop_data.inherent_static_friction_ = 0.02;
-    prop_data.inherent_dynamic_friction_ = 0.1;
-    prop_data.restitution_ = 0.01;
+    prop_data.inherent_static_friction_ = 0.02f;
+    prop_data.inherent_dynamic_friction_ = 0.1f;
+    prop_data.restitution_ = 0.01f;
 
     PolygonType polygon_data;
     prop_data.stationary_ = true;
@@ -107,21 +107,23 @@ static void dome3() {
     Property prop_data;
     prop_data.inherent_static_friction_ = 0.00f;
     prop_data.inherent_dynamic_friction_ = 0.0f;
-    prop_data.restitution_ = 1;
-
-    PolygonType polygon_data;
+    prop_data.restitution_ = 1.0f;
+    
     prop_data.stationary_ = true;
+    world.CreatCircle(data1, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.005f });
+   
+    PolygonType polygon_data;
+    prop_data.stationary_ = false;
     polygon_data.vertices[2] = { 10.0f,-0.1f };
     polygon_data.vertices[3] = { 10.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(0)->MoveTo({ 0.0f,-0.2f });
-
-    prop_data.stationary_ = false;
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(1)->MoveTo({ 0.0f,-0.005f });
-
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(2)->MoveTo({ 1.0f,-0.005f });
+    world.FindBody(1)->MoveTo({ 0.0f,-0.23f });
+   
+  
+    
+   /* world.CreatCircle(data1, prop_data);
+    world.FindBody(2)->MoveTo({ 1.0f,-0.005f });*/
 
 }
 
@@ -157,7 +159,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome3();
+        dome1();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -296,10 +298,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 selectedBody->SetAcceleration(oeVec2(moveSpeed, 0));
                 break;
             case GLFW_KEY_R:
-                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(-1));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(-10));
                 break;
             case GLFW_KEY_Q:
-                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(1));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(10));
                 break;
             case GLFW_KEY_RIGHT:
                 

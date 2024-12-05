@@ -6,6 +6,7 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact);
 
 oeWorld::oeWorld(Renderer* renderer):renderer_(renderer)
 {
+	
 }
 
 oeWorld::~oeWorld()
@@ -162,19 +163,19 @@ void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_
 	if (body_a.GetBodyState()) {
 		body_b.Move(separation_vector / 2);
 		
-		//RenderNormal(body_b, separation_vector * 5.0f / 2);
+		//RenderNormal(body_b, separation_vector * 1000.0f);
 	}
 	else if (body_b.GetBodyState()) {
 		body_a.Move(-separation_vector / 2);
 		
-		//RenderNormal(body_b, -separation_vector * 5.0f / 2);
+		//RenderNormal(body_b, -separation_vector * 1000.0f / 2);
 
 	}
 	else {
 		body_a.Move(-separation_vector / 2);
 		body_b.Move(separation_vector / 2);
-		//RenderNormal(body_a, -separation_vector*5.0f / 2);
-		//RenderNormal(body_b, separation_vector * 5.0f / 2);
+		//RenderNormal(body_a, -separation_vector*1000.0f / 2);
+		//RenderNormal(body_b, separation_vector * 1000.0f / 2);
 	}
 }
 
@@ -187,7 +188,7 @@ void oeWorld::NarrowPhase()
 
 		//对这两个物体使用碰撞检测，判断这两个物体是否发生碰撞
 
-		IntersectData intersect_data = Collide(pair.first, pair.second);
+		IntersectData intersect_data = Collide(pair.first, pair.second,renderer_);
 		
 		//如果发生碰撞，则计算分离向量，并分离这两个物体
 		if (intersect_data.Collision) {
@@ -198,13 +199,15 @@ void oeWorld::NarrowPhase()
 			Manifold manifold = { &pair.first, &pair.second,contact_data,intersect_data };
 			ResolveCollisionWithRotationAndFriction(manifold);
 			/*if (manifold.contact_data.contact_count == 1) {
-				renderer_->drawVector(oeVec2::Zero(), manifold.contact_data.contact1, manifold.body_a->aabb_color_);
+				renderer_->drawPoint( manifold.contact_data.contact1, manifold.body_a->aabb_color_);
+				
 			}
 			else {
-				renderer_->drawVector(oeVec2::Zero(), manifold.contact_data.contact1, manifold.body_a->aabb_color_);
-				renderer_->drawVector(oeVec2::Zero(), manifold.contact_data.contact2, manifold.body_a->aabb_color_);
+				renderer_->drawPoint( manifold.contact_data.contact1, manifold.body_a->aabb_color_);
+				renderer_->drawPoint( manifold.contact_data.contact2, manifold.body_a->aabb_color_);
 
 			}*/
+			
 			
 		}
 
@@ -214,15 +217,16 @@ void oeWorld::NarrowPhase()
 static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 	oeBody* bodyA = contact.body_a;
 	oeBody* bodyB = contact.body_b;
+	
 	oeVec2 normal = contact.intersect_data.normal;
 	oeVec2 contact1 = contact.contact_data.contact1;
 	oeVec2 contact2 = contact.contact_data.contact2;
 
-	//////这里强行针对bug处理，咋也不知道为什么，可能是SAT实现错了，以后再修,这个bug很严重必须修
-	if (bodyA->shape_ == CIRCLE && bodyA->stationary_ == false && bodyB->shape_ == POLYGON && bodyB->stationary_ == true ||
-		bodyB->shape_ == CIRCLE && bodyB->stationary_ == false && bodyA->shape_ == POLYGON && bodyA->stationary_ == true) {
-		normal = -normal;
-	}
+	////////这里强行针对bug处理，咋也不知道为什么，可能是SAT实现错了，以后再修,这个bug很严重必须修
+	//if (bodyA->shape_ == CIRCLE && bodyA->stationary_ == false && bodyB->shape_ == POLYGON && bodyB->stationary_ == true ||
+	//	bodyB->shape_ == CIRCLE && bodyB->stationary_ == false && bodyA->shape_ == POLYGON && bodyA->stationary_ == true) {
+	//	normal = -normal;
+	//}
 
 	const int contactCount = contact.contact_data.contact_count;
 
@@ -341,3 +345,5 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 		bodyB->angular_velocity_ += oeVec2::cross(rb, frictionImpulse) * bodyB->inverse_rotational_inertia_;
 	}
 }
+
+

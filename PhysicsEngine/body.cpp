@@ -110,70 +110,58 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 	density_ = mass / volume_;
 	mass_center_ = GetPolygonCentroid();
 }
-
-void oeBody::Move(const oeVec2 v)
-{
-
+void oeBody::Move(const oeVec2 v) {
 	if (shape_ == CIRCLE) {
 		mass_center_.y += v.y;
 		mass_center_.x += v.x;
-
+		GetAABB(); // 更新AABB包围盒
 	}
-	else if (shape_ ==POLYGON) {
+	else if (shape_ == POLYGON) {
 		for (int i = 0; i < vertices_count_; ++i) {
 			vertices_[i].x += v.x;
 			vertices_[i].y += v.y;
 		}
 		mass_center_ = GetPolygonCentroid();
+		GetAABB(); // 更新AABB包围盒
 	}
 }
-void oeBody::MoveTo(const oeVec2 v)
-{
+
+void oeBody::MoveTo(const oeVec2 v) {
 	if (this->shape_ == CIRCLE) {
 		this->mass_center_ = v;
+		GetAABB(); // 更新AABB包围盒
 	}
 	else if (this->shape_ == POLYGON) {
-		//先将多边形的质心平移至原点，在将物体平移值目标位置
-
 		int vertices_num = vertices_count_;
 		oeVec2 origin = this->mass_center_;
 		for (int i = 0; i < vertices_count_; ++i) {
 			vertices_[i].x -= origin.x;
 			vertices_[i].y -= origin.y;
 		}
-		// 平移回新的位置
 		for (int i = 0; i < vertices_count_; ++i) {
 			vertices_[i].x += v.x;
 			vertices_[i].y += v.y;
 		}
 		this->mass_center_ = GetPolygonCentroid();
+		GetAABB(); // 更新AABB包围盒
 	}
 }
 
-void oeBody::Rotation(const float radian)
-{
+void oeBody::Rotation(const float radian) {
 	if (shape_ == CIRCLE) {
+		// 圆形不需要旋转
 	}
 	else if (shape_ == POLYGON) {
-		// 平移所有顶点到原点  
 		oeVec2 origin = mass_center_;
 		for (auto& vertex : vertices_) {
 			vertex -= origin;
-		}
-
-		// 旋转所有顶点  
-		for (auto& vertex : vertices_) {
 			oeVec2::Transform(vertex.x, vertex.y, radian);
-		}
-
-		// 平移回原来的位置  
-		for (auto& vertex : vertices_) {
 			vertex += origin;
 		}
 		mass_center_ = (vertices_[0] + vertices_[2]) / 2.0f;
+		GetAABB(); // 更新AABB包围盒
 	}
 }
-
 void oeBody::SetVelocity(const oeVec2 v0) { 
 	velocity_ = v0; 
 }
