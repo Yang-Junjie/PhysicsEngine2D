@@ -36,10 +36,6 @@ private:
 	//面积
 	float area_ = 1.0f;
 	
-	
-
-	
-
 public:
 	//物体旋转的角度
 	float angle_ = 0.0f;

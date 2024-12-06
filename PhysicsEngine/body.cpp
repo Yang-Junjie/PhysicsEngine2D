@@ -37,6 +37,28 @@ oeVec2 oeBody::GetPolygonCentroid() const {
 	return oeVec2(cx, cy);
 }
 
+//求三角形的转动惯量
+static float inertiaTriangle(const oeVec2& a, const oeVec2& b, const oeVec2& c, float mass) {
+	float areaTriangle = GetTriangleArea(a, b, c);
+	float aLength = oeVec2::Distance(a, b);
+	float bLength = oeVec2::Distance(b, c);
+	float cLength = oeVec2::Distance(c, a);
+	float Ic = static_cast<float>(mass / 6 * (std::pow(aLength, 2) + std::pow(bLength, 2) + std::pow(cLength, 2)));
+	return Ic;
+}
+
+//求不规则多边形的转动惯量
+static float inertiaPolygon(const oeVec2 points[],int vertices_count, float mass) {
+	float totalInertia = 0.0;
+	for (int i = 0; i < vertices_count - 2; ++i) {
+		oeVec2 a = points[0];
+		oeVec2 b = points[i + 1];
+		oeVec2 c = points[i + 2];
+		totalInertia += inertiaTriangle(a, b, c, mass);
+	}
+	return totalInertia;
+}
+
 void oeBody::Update(float time, int iterations)
 {
 	time /= iterations;
@@ -93,7 +115,7 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 		mass_ = mass;
 		float width = (vertices[3].x - vertices[0].x);
 		float height = (vertices[0].y - vertices[1].y);
-		rotational_inertia_ = (1.0f / 12.0f) * mass * (width * height + width * height);//正方形的转动惯量，明天实现多边形的转动惯量
+		rotational_inertia_ = inertiaPolygon(vertices,vertices_count,mass);//正方形的转动惯量，明天实现多边形的转动惯量
 	}
 	inverse_mass_ = mass_ > 0 ? 1.0f / mass_ : 0.0f;
 	inverse_rotational_inertia_ = rotational_inertia_ > 0 ? 1.0f / rotational_inertia_ : 0.0f;

@@ -188,7 +188,7 @@ void oeWorld::NarrowPhase()
 
 		//对这两个物体使用碰撞检测，判断这两个物体是否发生碰撞
 
-		IntersectData intersect_data = Collide(pair.first, pair.second,renderer_);
+		IntersectData intersect_data = Collide(pair.first, pair.second);
 		
 		//如果发生碰撞，则计算分离向量，并分离这两个物体
 		if (intersect_data.Collision) {
@@ -221,12 +221,6 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 	oeVec2 normal = contact.intersect_data.normal;
 	oeVec2 contact1 = contact.contact_data.contact1;
 	oeVec2 contact2 = contact.contact_data.contact2;
-
-	////////这里强行针对bug处理，咋也不知道为什么，可能是SAT实现错了，以后再修,这个bug很严重必须修
-	//if (bodyA->shape_ == CIRCLE && bodyA->stationary_ == false && bodyB->shape_ == POLYGON && bodyB->stationary_ == true ||
-	//	bodyB->shape_ == CIRCLE && bodyB->stationary_ == false && bodyA->shape_ == POLYGON && bodyA->stationary_ == true) {
-	//	normal = -normal;
-	//}
 
 	const int contactCount = contact.contact_data.contact_count;
 
@@ -283,10 +277,6 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 		oeVec2 impulse = impulseList[i];
 		oeVec2 ra = raList[i];
 		oeVec2 rb = rbList[i];
-        /*bodyA.LinearVelocity += -impulse * bodyA.InvMass  
-        bodyA.AngularVelocity += -SimplyVector.cross(ra, impulse) * bodyA.InvRotationalInertia  
-        bodyB.LinearVelocity += impulse * bodyB.InvMass 
-		bodyB.AngularVelocity += SimplyVector.cross(rb, impulse) * bodyB.InvRotationalInertia*/
 		bodyA->velocity_ += -impulse * bodyA->inverse_mass_;
 		bodyA->angular_velocity_ += -oeVec2::cross(ra, impulse) * bodyA->inverse_rotational_inertia_;
 		bodyB->velocity_ += impulse * bodyB->inverse_mass_;
@@ -336,9 +326,6 @@ static void ResolveCollisionWithRotationAndFriction(Manifold& contact) {
 		oeVec2 frictionImpulse = frictionImpulseList[i];
 		oeVec2 ra = raList[i];
 		oeVec2 rb = rbList[i];
-		/*bodyA->ApplyImpulse(-frictionImpulse, contact.Contacts[i]);
-		bodyB->ApplyImpulse(frictionImpulse, contact.Contacts[i]);
-		bodyA->velocity_ += -frictionImpulse * bodyA->inverse_mass_;*/
 		bodyA->velocity_ += -frictionImpulse * bodyA->inverse_mass_;
 		bodyA->angular_velocity_ += -oeVec2::cross(ra, frictionImpulse) * bodyA->inverse_rotational_inertia_;
 		bodyB->velocity_ += frictionImpulse * bodyB->inverse_mass_;

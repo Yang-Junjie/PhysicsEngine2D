@@ -10,16 +10,6 @@ normal：分离向量
 
 
 
-struct Contact {
-    const void* shapeA;
-    const void* shapeB;
-    oeVec2 point;
-    oeVec2 normal;
-    double depth;
-
-    Contact(const void* a, const void* b, const oeVec2& p, const oeVec2& n, double d)
-        : shapeA(a), shapeB(b), point(p), normal(n), depth(d) {}
-};
 
 struct IntersectData {
     bool Collision = false;
@@ -166,7 +156,6 @@ static int FindVertexClosestPoint(const oeVec2& point, const oeVec2 vertices[],c
 static oeVec2 ProjectVertices(const oeVec2& axis, const oeVec2 vertices[], int vertices_count) {
     float min_proj = std::numeric_limits<float>::max();
     float max_proj = -std::numeric_limits<float>::max();
-
     for (int i = 0; i < vertices_count; ++i) {
         float projection = axis.dot(vertices[i]);
         min_proj = std::min(min_proj, projection);
@@ -215,10 +204,10 @@ namespace Intersect {
         }
         
 
-        static IntersectData IntersectCirclePolygon(
+        static IntersectData IntersectCircleToPolygon(
             const oeVec2& circle_center, float circle_radius,
             const oeVec2& polygon_mass_center, const oeVec2 polygon_vertices[], int vertices_count,
-             Renderer* render,float color[],bool reverse_normal = false
+            bool reverse_normal = false
         ) {
             IntersectData data;
             data.normal = { 0.0f, 0.0f };
@@ -256,21 +245,17 @@ namespace Intersect {
                
             }
 
-            // 找到多边形上距离圆心最近的点
-            oeVec2 cp = FindCirclePolygonContactPoint(circle_center, polygon_vertices, vertices_count);
-
+          
             // 计算圆心到接触点的方向向量
-            oeVec2 direction = cp - circle_center;
+            oeVec2 direction = polygon_mass_center - circle_center;
             
-            /*render->drawLine(oeVec2::Zero(), direction, color);
-            render->drawPoint(direction, color);*/
+           
             // 确保法向量指向从圆形到多边形的方向
             if (direction.dot(data.normal) < 0) {
                 data.normal = -data.normal;
             }
-            render->drawLine(oeVec2::Zero(), data.normal, color);
-            render->drawPoint(data.normal, color);
-            // 如果需要反转法向量，则进行反转
+          
+            //// 如果需要反转法向量，则进行反转
             if (reverse_normal) {
                 data.normal = -data.normal;
             }
@@ -279,6 +264,15 @@ namespace Intersect {
             data.Collision = true;
             return data;
         }
+
+
+        static IntersectData IntersectPolygonToCircle(
+            const oeVec2& polygon_mass_center, const oeVec2 polygon_vertices[], int vertices_count,
+            const oeVec2& circle_center, float circle_radius) 
+        {
+            return IntersectCircleToPolygon(circle_center, circle_radius, polygon_mass_center, polygon_vertices, vertices_count,true);
+        }
+
 
         /*多边形与多边形碰撞检测*/
         static IntersectData IntersectPolygons(
@@ -360,8 +354,237 @@ namespace Intersect {
             return data;
         }
     }
+    namespace GJK {
+
+        struct Simplex {
+            std::vector<oeVec2> points;
+
+            void Add(const oeVec2& point) {
+                points.push_back(point);
+            }
+
+            void RemoveLast() {
+                if (!points.empty()) {
+                    points.pop_back();
+                }
+            }
+
+            bool GetClosestOutPoint(oeVec2& out, const oeVec2& direction) {
+                if (points.size() == 1) {
+                    out = points[0];
+                    return true;
+                }
+                else if (points.size() == 2) {
+                    oeVec2 a = points[0];
+                    oeVec2 b = points[1];
+                    oeVec2 ab = b - a;
+                    float dotABDir = ab.dot(direction);
+
+                    if (dotABDir > 0.0f) {
+                        out = b;
+                        return true;
+                    }
+                    else if (dotABDir < 0.0f) {
+                        out = a;
+                        return true;
+                    }
+                    else {
+                        out = a;
+                        return false;
+                    }
+                }
+                else if (points.size() == 3) {
+                    oeVec2 a = points[0];
+                    oeVec2 b = points[1];
+                    oeVec2 c = points[2];
+
+                    oeVec2 ab = b - a;
+                    oeVec2 ac = c - a;
+                    oeVec2 bc = c - b;
+
+                    oeVec2 ao = -a;
+                    oeVec2 bo = -b;
+                    oeVec2 co = -c;
+
+                    if (ab.cross(ao) * ac.cross(ao) >= 0.0f &&
+                        ab.cross(bc) * ab.cross(bo) >= 0.0f &&
+                        ac.cross(bc) * ac.cross(co) >= 0.0f) {
+                        return false;
+                    }
+
+                    float distAB = ab.cross(ao);
+                    float distAC = ac.cross(ao);
+                    float distBC = bc.cross(bo);
+
+                    if (distAB <= 0.0f) {
+                        out = a;
+                        return true;
+                    }
+                    if (distAC >= 0.0f) {
+                        out = c;
+                        return true;
+                    }
+                    if (distBC <= 0.0f) {
+                        out = b;
+                        return true;
+                    }
+
+                    return false;
+                }
+                return false;
+            }
+
+            bool ContainsOrigin() {
+                if (points.size() == 3) {
+                    oeVec2 a = points[0];
+                    oeVec2 b = points[1];
+                    oeVec2 c = points[2];
+
+                    oeVec2 ao = -a;
+                    oeVec2 bo = -b;
+                    oeVec2 co = -c;
+
+                    if (oeVec2::cross(b - a, ao) * oeVec2::cross(c - a, ao) >= 0.0f &&
+                        oeVec2::cross(c - b, bo) * oeVec2::cross(a - b, bo) >= 0.0f &&
+                        oeVec2::cross(a - c, co) * oeVec2::cross(b - c, co) >= 0.0f) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+
+        static oeVec2 Support(const oeVec2* verticesA, int verticesA_count,
+            const oeVec2* verticesB, int verticesB_count,
+            const oeVec2& direction) {
+            oeVec2 farthestA = verticesA[0];
+            float maxDotA = farthestA.dot(direction);
+            for (int i = 1; i < verticesA_count; ++i) {
+                oeVec2 v = verticesA[i];
+                float dot = v.dot(direction);
+                if (dot > maxDotA) {
+                    maxDotA = dot;
+                    farthestA = v;
+                }
+            }
+
+            oeVec2 farthestB = verticesB[0];
+            float minDotB = farthestB.dot(-direction);
+            for (int i = 1; i < verticesB_count; ++i) {
+                oeVec2 v = verticesB[i];
+                float dot = v.dot(-direction);
+                if (dot < minDotB) {
+                    minDotB = dot;
+                    farthestB = v;
+                }
+            }
+
+            return farthestA - farthestB;
+        }
+
+        static bool EPASolve(Simplex& simplex, const oeVec2* verticesA, int verticesA_count,
+            const oeVec2* verticesB, int verticesB_count,
+            oeVec2& normal, float& depth) {
+            while (simplex.points.size() < 3) {
+                oeVec2 closestPoint;
+                if (!simplex.GetClosestOutPoint(closestPoint, -closestPoint)) {
+                    normal = -closestPoint;
+                    normal.normalize();
+                    depth = 0.0f;
+                    return true;
+                }
+                oeVec2 support = Support(verticesA, verticesA_count, verticesB, verticesB_count, -closestPoint);
+                simplex.Add(support);
+            }
+
+            while (true) {
+                size_t bestIndex = 0;
+                float minDistance = std::numeric_limits<float>::max();
+                for (size_t i = 0; i < simplex.points.size(); ++i) {
+                    oeVec2 p1 = simplex.points[i];
+                    oeVec2 p2 = simplex.points[(i + 1) % simplex.points.size()];
+                    oeVec2 edge = p2 - p1;
+                    oeVec2 faceNormal(-edge.y, edge.x);
+                    faceNormal.normalize();
+
+                    float distance = -faceNormal.dot(p1); // d = -N·P
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestIndex = i;
+                        normal = faceNormal;
+                    }
+                }
+
+                if (minDistance >= 0.0f) {
+                    depth = minDistance;
+                    return true;
+                }
+
+                oeVec2 support = Support(verticesA, verticesA_count, verticesB, verticesB_count, normal);
+                float distanceToSupport = normal.dot(support);
+
+                if (distanceToSupport <= minDistance) {
+                    depth = -minDistance;
+                    return true;
+                }
+
+                simplex.Add(support);
+            }
+        }
+
+        static IntersectData GJKIntersectPolygons(
+            const oeVec2* verticesA, int verticesA_count,
+            const oeVec2* verticesB, int verticesB_count
+        ) {
+            IntersectData data = { false, 0.0f, oeVec2(0, 0) };
+
+            // 初始方向为从 A 的质心指向 B 的质心
+            oeVec2 direction = verticesB[0] - verticesA[0];
+            if (direction.LengthSquared() == 0.0f) {
+                direction = oeVec2(1, 0); // 避免除以零的情况
+            }
+            else {
+                direction.normalize();
+            }
+
+            Simplex simplex;
+            oeVec2 supportPoint;
+
+            while (true) {
+                supportPoint = Support(verticesA, verticesA_count, verticesB, verticesB_count, -direction);
+
+                if (supportPoint.dot(direction) <= 0.0f) {
+                    return data;
+                }
+
+                simplex.Add(supportPoint);
+
+                if (simplex.ContainsOrigin()) {
+                    // 使用 EPA 算法获取碰撞法线和深度
+                    if (EPASolve(simplex, verticesA, verticesA_count, verticesB, verticesB_count, data.normal, data.depth)) {
+                        data.Collision = true;
+                        return data;
+                    }
+                }
+
+                oeVec2 closestPoint;
+                if (!simplex.GetClosestOutPoint(closestPoint, -supportPoint)) {
+                    data.Collision = true;
+                    data.normal = -closestPoint;
+                    data.normal.normalize();
+                    data.depth = 0.0f;
+                    return data;
+                }
+                direction = -closestPoint;
+                if (direction.LengthSquared() == 0.0f) {
+                    return data;
+                }
+                direction.normalize();
+            }
+        }
+    }
     
-    namespace GJK {}
 }
 
 
@@ -394,12 +617,12 @@ static ContactData FindContactPoints(const oeBody& body_a, const oeBody& body_b)
 
     return result;
 }
-static IntersectData  Collide(oeBody& body_a, oeBody& body_b,Renderer* render) {
+static IntersectData  Collide(oeBody& body_a, oeBody& body_b) {
     IntersectData intersect_data;
     Shape shape_type_a = body_a.shape_;
     Shape shape_type_b = body_b.shape_;
-    float color[] = { 1,1,1,1 };
-    std::cout << body_a.body_id_ << body_a.shape_ << "||" << body_b.body_id_ << body_b.shape_<<std::endl;;
+    
+  
     if ( shape_type_a == POLYGON) {
         if ( shape_type_b == POLYGON) {
             intersect_data = Intersect::SAT::IntersectPolygons(body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,
@@ -407,7 +630,7 @@ static IntersectData  Collide(oeBody& body_a, oeBody& body_b,Renderer* render) {
             return intersect_data;
         }
         else if (shape_type_b == CIRCLE) {
-            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_b.mass_center_, body_b.radius_, body_a.mass_center_, body_a.vertices_,body_a.vertices_count_,render,color,true);
+            intersect_data = Intersect::SAT::IntersectPolygonToCircle( body_a.mass_center_, body_a.vertices_,body_a.vertices_count_, body_b.mass_center_, body_b.radius_);
             return intersect_data;
         }
     }
@@ -417,7 +640,7 @@ static IntersectData  Collide(oeBody& body_a, oeBody& body_b,Renderer* render) {
             return intersect_data;
         }
         else if (shape_type_b == POLYGON) {
-            intersect_data = Intersect::SAT::IntersectCirclePolygon(body_a.mass_center_, body_a.radius_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_, render, color);
+            intersect_data = Intersect::SAT::IntersectCircleToPolygon(body_a.mass_center_, body_a.radius_, body_b.mass_center_, body_b.vertices_, body_b.vertices_count_);
             return intersect_data;
         }
     }

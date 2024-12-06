@@ -108,22 +108,26 @@ static void dome3() {
     prop_data.inherent_static_friction_ = 0.00f;
     prop_data.inherent_dynamic_friction_ = 0.0f;
     prop_data.restitution_ = 1.0f;
+    
+   
     prop_data.stationary_ = true;
     world.CreatCircle(data1, prop_data);
     world.FindBody(0)->MoveTo({ 0.0f,-0.005f });
     
-   
     PolygonType polygon_data;
     prop_data.stationary_ = false;
-    polygon_data.vertices[2] = { 10.0f,-0.1f };
-    polygon_data.vertices[3] = { 10.0f,0.1f };
+    polygon_data.vertces_count = 6;
+    polygon_data.vertices[2] = { 5.0f,-1.0f };
+    polygon_data.vertices[3] = { 10.0f,-0.1f };
+    polygon_data.vertices[4] = { 10.0f,0.1f };
+    polygon_data.vertices[5] = { 5.0f,1.0f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(1)->MoveTo({ 0.0f,-0.23f });
+    world.FindBody(1)->MoveTo({ 0.0f,-0.0f });
    
   
+
    
-   /* world.CreatCircle(data1, prop_data);
-    world.FindBody(2)->MoveTo({ 1.0f,-0.005f });*/
+   
 
 }
 
@@ -298,10 +302,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 selectedBody->SetAcceleration(oeVec2(moveSpeed, 0));
                 break;
             case GLFW_KEY_R:
-                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(-10));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(-90));
                 break;
             case GLFW_KEY_Q:
-                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(10));
+                selectedBody->SetAngularVelocity(oeVec2::AngleToRadian(90));
                 break;
             case GLFW_KEY_RIGHT:
                 
