@@ -2,6 +2,7 @@
 #include <vector>
 #include "math.h"
 #include <iostream>
+#include "forcegenerator.h"
 const int the_maximum_vertices = 8;
 
 
@@ -27,6 +28,7 @@ struct oeAABB
 class oeBody {
 
 private:
+	
 	//密度
 	float density_ = 0.1f;
 
@@ -35,10 +37,13 @@ private:
 	
 	//面积
 	float area_ = 1.0f;
+
 	
 public:
 	//物体旋转的角度
 	float angle_ = 0.0f;
+
+	oeVec2 Force_;
 
 	//物体的角速度,对于二维情况下角速度的方向是垂直于屏幕的所以使用float
 	float angular_velocity_ = 0.0f;

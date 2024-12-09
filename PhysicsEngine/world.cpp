@@ -4,7 +4,8 @@
 
 static void ResolveCollisionWithRotationAndFriction(Manifold& contact);
 
-oeWorld::oeWorld(Renderer* renderer):renderer_(renderer)
+oeWorld::oeWorld(Renderer* renderer)
+	:renderer_(renderer)
 {
 	
 }
@@ -20,6 +21,7 @@ void oeWorld::CreatCircle(CircleType type_data, Property prop_data)
 	tmp.body_id_ = id_count;
 	bodys_list_.push_back(tmp);
 	//bodys_list_[id_count] = tmp;
+	//AddBody(*FindBody(id_count));
 }
 
 void oeWorld::CreatPolygon(PolygonType type_data,Property prop_data)
@@ -29,6 +31,7 @@ void oeWorld::CreatPolygon(PolygonType type_data,Property prop_data)
 	tmp.body_id_ = id_count;
 	bodys_list_.push_back(tmp);
 	//bodys_list_[id_count] = tmp;
+	//AddBody(*FindBody(id_count));
 }
 
 oeBody* oeWorld::FindBody(const int id)
@@ -76,16 +79,17 @@ void oeWorld::Interation(float time,int iterations)
 	for (auto& body : bodys_list_) {
 		if (!body.GetBodyState()) {
 			body.Update(time, iterations);
+			// 确保body.aabb_已经被正确设置
+			body.GetAABB();
+
+			
 		}
 	}
+	
 	BroadPhase();
 	NarrowPhase();
 }
 
-void oeWorld::SetGravityAcc(const oeVec2 g)
-{
-	gravity_acc_ = g;
-}
 
 int oeWorld::GetBodyNum() const
 {
@@ -98,65 +102,6 @@ std::vector<oeBody>* oeWorld::GetBodysList()
 }
 
 
-
-void oeWorld::BroadPhase() {
-	// 对需要对aabb上色的物体进行标记
-	std::unordered_map<int, bool> colored;
-
-	//不能去重，否则当circle在polygon前方时会出bug
-	// 开始判断两个物体的aabb是否相交
-	for (size_t i = 0; i < bodys_list_.size(); ++i) {
-		auto& body_a = bodys_list_[i];
-		body_a.GetAABB();
-
-		for (size_t j = 0; j < bodys_list_.size(); ++j) {
-			auto& body_b = bodys_list_[j];
-			body_b.GetAABB();
-
-			
-			if (body_a.GetBodyState() && body_b.GetBodyState()||body_a.body_id_ == body_b.body_id_) {
-				continue;
-			}
-
-			// 检测
-			bool intersect = IntersectAABB(body_a.aabb_, body_b.aabb_);
-			
-			// 如果没有相交则继续下一个物体的检测
-			if (!intersect) {
-				
-				
-				continue;
-			}
-			else {
-				colored[body_a.body_id_] = true;
-				colored[body_b.body_id_] = true;
-				std::pair<oeBody&, oeBody&> pair_body(body_a, body_b);
-				contact_body_.push_back(pair_body);
-				
-
-
-			}
-		}
-	}
-	
-	//再对标记过的物体的aabb进行上色
-	for (auto& body : bodys_list_) {
-		if (colored[body.body_id_]) {
-			
-			body.aabb_color_[0] = 1.0f;
-			body.aabb_color_[1] = 1.0f;
-			body.aabb_color_[2] = 1.0f;
-			body.aabb_color_[3] = 1.0f;
-			
-		}
-		else {
-			body.aabb_color_[0] = 1.0f;
-			body.aabb_color_[1] = 0.0f;
-			body.aabb_color_[2] = 0.0f;
-			body.aabb_color_[3] = 1.0f;
-		}
-	}
-}
 //分离物体
 void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_vector)
 {
@@ -179,6 +124,114 @@ void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_
 	}
 }
 
+//
+//void oeWorld::BroadPhase() {
+//	std::unordered_map<int, bool> colored;
+//
+//	for (size_t i = 0; i < bodys_list_.size(); ++i) {
+//		auto& body_a = bodys_list_[i];
+//
+//		// 获取可能的碰撞器
+//		auto potential_colliders = spatial_hash_.GetPotentialColliders(body_a);
+//		for (auto& collider_id : potential_colliders) {
+//			if (collider_id == body_a.body_id_) continue;
+//			auto& body_b = bodys_list_[collider_id];
+//
+//			if (body_a.GetBodyState() && body_b.GetBodyState()) {
+//				continue;
+//			}
+//
+//			// 检测
+//			bool intersect = Intersect::IntersectAABB(body_a.aabb_, body_b.aabb_);
+//
+//			// 如果没有相交则继续下一个物体的检测
+//			if (!intersect) {
+//				continue;
+//			}
+//			else {
+//				colored[body_a.body_id_] = true;
+//				colored[body_b.body_id_] = true;
+//				std::pair<oeBody&, oeBody&> pair_body(body_a, body_b);
+//				contact_body_.push_back(pair_body);
+//			}
+//		}
+//	}
+//
+//	// 再对标记过的物体的aabb进行上色
+//	for (auto& body : bodys_list_) {
+//		if (colored[body.body_id_]) {
+//			body.aabb_color_[0] = 1.0f;
+//			body.aabb_color_[1] = 1.0f;
+//			body.aabb_color_[2] = 1.0f;
+//			body.aabb_color_[3] = 1.0f;
+//		}
+//		else {
+//			body.aabb_color_[0] = 1.0f;
+//			body.aabb_color_[1] = 0.0f;
+//			body.aabb_color_[2] = 0.0f;
+//			body.aabb_color_[3] = 1.0f;
+//		}
+//	}
+//}
+
+void oeWorld::BroadPhase() {
+	// 对需要对aabb上色的物体进行标记
+	std::unordered_map<int, bool> colored;
+
+	//不能去重，否则当circle在polygon前方时会出bug
+	// 开始判断两个物体的aabb是否相交
+	for (size_t i = 0; i < bodys_list_.size(); ++i) {
+		auto& body_a = bodys_list_[i];
+		body_a.GetAABB();
+
+		for (size_t j = 0; j < bodys_list_.size(); ++j) {
+			auto& body_b = bodys_list_[j];
+			body_b.GetAABB();
+
+
+			if (body_a.GetBodyState() && body_b.GetBodyState() || body_a.body_id_ == body_b.body_id_) {
+				continue;
+			}
+
+			// 检测
+			bool intersect = Intersect::IntersectAABB(body_a.aabb_, body_b.aabb_);
+
+			// 如果没有相交则继续下一个物体的检测
+			if (!intersect) {
+
+
+				continue;
+			}
+			else {
+				colored[body_a.body_id_] = true;
+				colored[body_b.body_id_] = true;
+				std::pair<oeBody&, oeBody&> pair_body(body_a, body_b);
+				contact_body_.push_back(pair_body);
+
+
+
+			}
+		}
+	}
+
+	//再对标记过的物体的aabb进行上色
+	for (auto& body : bodys_list_) {
+		if (colored[body.body_id_]) {
+
+			body.aabb_color_[0] = 1.0f;
+			body.aabb_color_[1] = 1.0f;
+			body.aabb_color_[2] = 1.0f;
+			body.aabb_color_[3] = 1.0f;
+
+		}
+		else {
+			body.aabb_color_[0] = 1.0f;
+			body.aabb_color_[1] = 0.0f;
+			body.aabb_color_[2] = 0.0f;
+			body.aabb_color_[3] = 1.0f;
+		}
+	}
+}
 
 
 void oeWorld::NarrowPhase()

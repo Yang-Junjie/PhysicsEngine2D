@@ -63,7 +63,7 @@ void oeBody::Update(float time, int iterations)
 {
 	time /= iterations;
 	if (stationary_)return;
-	velocity_ += (acceleration_ + oeVec2{0.0f,-0.0f}) * time;
+	velocity_ += (acceleration_ + oeVec2{0.0f,-100.0f})* time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
 	
@@ -103,6 +103,7 @@ oeBody::oeBody(Shape shape, float radius, float* color, oeVec2 mass_center, floa
 	density_ = mass / volume_;
 	
 	for (int i = 0; i < 4; i++)color_[i] = color[i];
+	GetAABB();  // 初始化AABB
 }
 
 oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, float mass, bool body_state, float restitution, float inherent_static_friction, float inherent_dynamic_friction):
@@ -131,6 +132,7 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 	volume_ = area_*1.0f;
 	density_ = mass / volume_;
 	mass_center_ = GetPolygonCentroid();
+	GetAABB();  // 初始化AABB
 }
 void oeBody::Move(const oeVec2 v) {
 	if (shape_ == CIRCLE) {

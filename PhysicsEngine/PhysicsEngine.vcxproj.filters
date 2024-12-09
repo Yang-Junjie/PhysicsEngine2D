@@ -77,6 +77,9 @@
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="forcegenerator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imconfig.h">
@@ -140,6 +143,12 @@
       <Filter>application</Filter>
     </ClInclude>
     <ClInclude Include="collision.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamictree.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="forcegenerator.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

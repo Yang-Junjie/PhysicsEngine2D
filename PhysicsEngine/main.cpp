@@ -53,10 +53,13 @@ static void dome1() {
 
 
 static void dome2() {
+
+    ForceGenerator forceGen;
+    forceGen.GenGravityAcc({ 0.0f,-100.0f });
     int count = 4;
     Property prop_data;
-    prop_data.inherent_static_friction_ = 0.02f;
-    prop_data.inherent_dynamic_friction_ = 0.1f;
+    prop_data.inherent_static_friction_ = 0.3f;
+    prop_data.inherent_dynamic_friction_ = 0.2f;
     prop_data.restitution_ = 0.01f;
 
     PolygonType polygon_data;
@@ -64,7 +67,7 @@ static void dome2() {
     polygon_data.vertices[2] = { 10.0f,-0.1f };
     polygon_data.vertices[3] = { 10.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+    world.FindBody(0)->MoveTo({ 0.0f,-0.5f });
 
     polygon_data.vertices[2] = { 6.0f,-0.1f };
     polygon_data.vertices[3] = { 6.0f,0.1f };
@@ -74,13 +77,13 @@ static void dome2() {
     polygon_data.vertices[2] = { 4.0f,-0.1f };
     polygon_data.vertices[3] = { 4.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(2)->MoveTo({ 2.5f,2.0f });
+    world.FindBody(2)->MoveTo({ 3.0f,1.5f });
     world.FindBody(2)->Rotation(oeVec2::AngleToRadian(20));
 
     polygon_data.vertices[2] = { 4.0f,-0.1f };
     polygon_data.vertices[3] = { 4.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(3)->MoveTo({ -1.0f,1.0f });
+    world.FindBody(3)->MoveTo({ -0.0f,0.5f });
     world.FindBody(3)->Rotation(oeVec2::AngleToRadian(-15));
 
     polygon_data.vertices[0] = { -0.05f,1.0f };
@@ -123,12 +126,6 @@ static void dome3() {
     polygon_data.vertices[5] = { 5.0f,1.0f };
     world.CreatPolygon(polygon_data, prop_data);
     world.FindBody(1)->MoveTo({ 0.0f,-0.0f });
-   
-  
-
-   
-   
-
 }
 
 static void ContorlAllBody() {
@@ -163,7 +160,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome3();
+        dome2();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
