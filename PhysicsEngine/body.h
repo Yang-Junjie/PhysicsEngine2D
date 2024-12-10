@@ -43,7 +43,9 @@ public:
 	//物体旋转的角度
 	float angle_ = 0.0f;
 
-	oeVec2 Force_;
+	oeVec2 force_;
+	
+	oeVec2 constant_force_;
 
 	//物体的角速度,对于二维情况下角速度的方向是垂直于屏幕的所以使用float
 	float angular_velocity_ = 0.0f;

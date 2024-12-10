@@ -32,6 +32,8 @@ struct Property {
 
 	//¹Ì¶¨¶¯Ä¦²ÁÁ¦
 	float inherent_dynamic_friction_ = 0.3f;
+
+	oeVec2 constant_force = { 0.0f,0.0f };
 };
 
 

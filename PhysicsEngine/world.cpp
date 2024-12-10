@@ -19,6 +19,7 @@ void oeWorld::CreatCircle(CircleType type_data, Property prop_data)
 	oeBody tmp(CIRCLE,type_data.radius, type_data.color, type_data.position, prop_data.mass_, prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
 	++id_count;
 	tmp.body_id_ = id_count;
+	tmp.constant_force_ = prop_data.constant_force;
 	bodys_list_.push_back(tmp);
 	//bodys_list_[id_count] = tmp;
 	//AddBody(*FindBody(id_count));
@@ -29,7 +30,9 @@ void oeWorld::CreatPolygon(PolygonType type_data,Property prop_data)
 	oeBody tmp(POLYGON, type_data.vertices, type_data.vertces_count, type_data.color,prop_data.mass_,prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
 	++id_count;
 	tmp.body_id_ = id_count;
+	tmp.constant_force_ = prop_data.constant_force;
 	bodys_list_.push_back(tmp);
+	
 	//bodys_list_[id_count] = tmp;
 	//AddBody(*FindBody(id_count));
 }

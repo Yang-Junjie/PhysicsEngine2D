@@ -63,7 +63,8 @@ void oeBody::Update(float time, int iterations)
 {
 	time /= iterations;
 	if (stationary_)return;
-	velocity_ += (acceleration_ + oeVec2{0.0f,-100.0f})* time;
+	acceleration_ = force_+constant_force_ / mass_;
+	velocity_ += (acceleration_)* time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
 	

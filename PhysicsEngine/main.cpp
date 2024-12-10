@@ -55,10 +55,10 @@ static void dome1() {
 static void dome2() {
 
     ForceGenerator forceGen;
-    forceGen.GenGravityAcc({ 0.0f,-100.0f });
     int count = 4;
     Property prop_data;
-    prop_data.inherent_static_friction_ = 0.3f;
+    prop_data.constant_force = forceGen.GenGravity({ 0.0f,-100.0f });
+    prop_data.inherent_static_friction_ = 0.4f;
     prop_data.inherent_dynamic_friction_ = 0.2f;
     prop_data.restitution_ = 0.01f;
 

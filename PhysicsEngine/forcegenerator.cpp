@@ -8,9 +8,9 @@ ForceGenerator::~ForceGenerator()
 {
 }
 
-void ForceGenerator::GenGravity(const oeVec2 gravity_acc,const float body_mass_)
+oeVec2 ForceGenerator::GenGravity(const oeVec2 gravity_acc)
 {
-    force_ += gravity_acc * body_mass_;
+    return gravity_acc;
 }
 
 oeVec2 ForceGenerator::GenGravityAcc(const oeVec2 gravity_acc)
