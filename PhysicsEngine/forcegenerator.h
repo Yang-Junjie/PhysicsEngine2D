@@ -2,6 +2,7 @@
 #include"math.h"
 
 
+
 class ForceGenerator {
 private:
 	oeVec2 force_ = { 0.0f,0.0f };

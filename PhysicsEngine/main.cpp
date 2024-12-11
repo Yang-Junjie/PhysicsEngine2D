@@ -51,15 +51,29 @@ static void dome1() {
     }
 }
 
+//½ð×ÖËþ
+static void dome4() {
+    
+    Property prop_data;
+    PolygonType polygon_data;
+   
+    
+    world.CreatPolygon(polygon_data, prop_data);
+  
+  
+   
+    
+}
+
 
 static void dome2() {
 
     ForceGenerator forceGen;
     int count = 4;
     Property prop_data;
-    prop_data.constant_force = forceGen.GenGravity({ 0.0f,-100.0f });
-    prop_data.inherent_static_friction_ = 0.4f;
-    prop_data.inherent_dynamic_friction_ = 0.2f;
+    prop_data.constant_force = forceGen.GenGravity({ 0.0f,-10.0f });
+    prop_data.inherent_static_friction_ = 0.6f;
+    prop_data.inherent_dynamic_friction_ = 0.4f;
     prop_data.restitution_ = 0.01f;
 
     PolygonType polygon_data;
@@ -67,7 +81,7 @@ static void dome2() {
     polygon_data.vertices[2] = { 10.0f,-0.1f };
     polygon_data.vertices[3] = { 10.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(0)->MoveTo({ 0.0f,-0.5f });
+    world.FindBody(0)->MoveTo({ 0.0f,-3.0f });
 
     polygon_data.vertices[2] = { 6.0f,-0.1f };
     polygon_data.vertices[3] = { 6.0f,0.1f };
@@ -78,13 +92,13 @@ static void dome2() {
     polygon_data.vertices[3] = { 4.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
     world.FindBody(2)->MoveTo({ 3.0f,1.5f });
-    world.FindBody(2)->Rotation(oeVec2::AngleToRadian(20));
+    world.FindBody(2)->Rotation(oeVec2::AngleToRadian(30));
 
     polygon_data.vertices[2] = { 4.0f,-0.1f };
     polygon_data.vertices[3] = { 4.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(3)->MoveTo({ -0.0f,0.5f });
-    world.FindBody(3)->Rotation(oeVec2::AngleToRadian(-15));
+    world.FindBody(3)->MoveTo({ 1.0f,-1.0f });
+    world.FindBody(3)->Rotation(oeVec2::AngleToRadian(-25));
 
     polygon_data.vertices[0] = { -0.05f,1.0f };
     polygon_data.vertices[1] = { -0.05f,-0.1f };
@@ -213,6 +227,7 @@ int main() {
             {
                 ImGui::Begin("console");
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::Text("ZOOM : %.3lf", OE_ZOOM);
                 ImGui::Text("num of Body : %d", world.GetBodyNum());
 
                 

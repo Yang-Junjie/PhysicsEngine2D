@@ -61,9 +61,9 @@ static float inertiaPolygon(const oeVec2 points[],int vertices_count, float mass
 
 void oeBody::Update(float time, int iterations)
 {
-	time /= iterations;
+	
 	if (stationary_)return;
-	acceleration_ = force_+constant_force_ / mass_;
+	acceleration_ = force_+constant_force_/ mass_;
 	velocity_ += (acceleration_)* time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
