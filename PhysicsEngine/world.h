@@ -43,3 +43,10 @@ public:
 
 	void Interation(float time,int iterations);
 };
+
+
+class gird {
+
+public:
+	float cell;
+};

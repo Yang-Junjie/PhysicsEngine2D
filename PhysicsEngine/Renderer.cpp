@@ -283,6 +283,7 @@ void Renderer::drawVector(const oeVec2 start, const oeVec2 vector, const float* 
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &cbo);
     glDeleteVertexArrays(1, &vao);
+    drawPoint(vector.x, vector.y, color);
 }
 
 void Renderer::drawPolygon(const oeVec2* vertices, int vertices_count, const float* color) {

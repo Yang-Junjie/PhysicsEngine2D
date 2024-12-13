@@ -117,11 +117,26 @@ static void dome2() {
 
 }
 
-
+oeVec2 fun(float x,float y) {
+    oeVec2 x_i = { 1,0 };
+    oeVec2 y_i = { 0,1 };
+    return { y * x_i - x * y_i };
+    
+}
+void draw_vectors() {
+    float color[4] = { 1.0f, 0.0f, 0.0f ,0.3f };
+    for (float x = -3.0f; x <= 3.0f; x += 0.1f) {
+        for (float y = -3.0f; y <= 3.0f; y += 0.1f) {
+            renderer.drawVector({x,y},fun(x,y), color);
+        }
+    }
+   
+}
 
 static void dome3() {
     CircleType data1;
     Property prop_data;
+    
     prop_data.inherent_static_friction_ = 0.00f;
     prop_data.inherent_dynamic_friction_ = 0.0f;
     prop_data.restitution_ = 1.0f;
@@ -174,7 +189,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome2();
+        
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -218,7 +233,7 @@ int main() {
             float color[4] = { 1.0f, 0.0f, 0.0f, 0.3f };
             renderer.drawLine(oeVec2(0, -100), oeVec2(0, 100), color);
             renderer.drawLine(oeVec2(-100, 0), oeVec2(100, 0), color);
-
+            draw_vectors();
            // ContorlAllBody();
 
             world.RenderBody();
