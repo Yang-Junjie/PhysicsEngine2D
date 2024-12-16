@@ -35,6 +35,7 @@ static void dome1() {
     PolygonType polygon_data;
     CircleType data1;
     PolygonType data3;
+    prop_data.restitution_ = 0;
     prop_data.stationary_ = true;
     polygon_data.vertices[2] = { 10.0f,-0.1f };
     polygon_data.vertices[3] = { 10.0f,0.1f };
@@ -50,8 +51,6 @@ static void dome1() {
         }
     }
 }
-
-//金字塔
 static void dome4() {
     
     Property prop_data;
@@ -59,10 +58,14 @@ static void dome4() {
    
     
     world.CreatPolygon(polygon_data, prop_data);
-  
-  
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(1)->MoveTo({ 0.0f,-1.0f });
+    oeBody* bodyA = world.FindBody(0);
+    oeBody* bodyB = world.FindBody(1);
+
+    ContactConstraint* contactConstraint = new ContactConstraint(bodyA, bodyB, { 1, 0 }, { 1, 0 });
+    world.globalConstraints.push_back(contactConstraint);
    
-    
 }
 
 
@@ -117,21 +120,6 @@ static void dome2() {
 
 }
 
-oeVec2 fun(float x,float y) {
-    oeVec2 x_i = { 1,0 };
-    oeVec2 y_i = { 0,1 };
-    return { y * x_i - x * y_i };
-    
-}
-void draw_vectors() {
-    float color[4] = { 1.0f, 0.0f, 0.0f ,0.3f };
-    for (float x = -3.0f; x <= 3.0f; x += 0.1f) {
-        for (float y = -3.0f; y <= 3.0f; y += 0.1f) {
-            renderer.drawVector({x,y},fun(x,y), color);
-        }
-    }
-   
-}
 
 static void dome3() {
     CircleType data1;
@@ -189,7 +177,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        
+        dome1();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -233,7 +221,7 @@ int main() {
             float color[4] = { 1.0f, 0.0f, 0.0f, 0.3f };
             renderer.drawLine(oeVec2(0, -100), oeVec2(0, 100), color);
             renderer.drawLine(oeVec2(-100, 0), oeVec2(100, 0), color);
-            draw_vectors();
+           
            // ContorlAllBody();
 
             world.RenderBody();
@@ -258,11 +246,11 @@ int main() {
                 ImGui::InputInt("Find body value", &bodyid);
                 if (bodyid + 1 <= world.GetBodyNum() && bodyid>=0) {
                     oeBody* body = world.FindBody(bodyid);
-                    ImGui::Text("Body %d position:(%.3f,%.3f) mass:%.3f", bodyid, body->mass_center_.x, body->mass_center_.y, body->GetMass());
-                    ImGui::Text("Shape:%d volume:%.3f density:%.3f", body->shape_, body->GetVolume(), body->GetDensity());
+                    ImGui::Text("Body %d position:(%.3f,%.3f) mass:%.3f", bodyid, body->mass_center_.x, body->mass_center_.y, body->mass_);
+                  //  ImGui::Text("Shape:%d volume:%.3f density:%.3f", body->shape_, body->GetVolume(), body->GetDensity());
                     ImGui::Text("abbmax:(%.3f,%.3f) aabbmin:(%.3f,%.3f)", body->aabb_.max.x, body->aabb_.max.y, body->aabb_.min.x, body->aabb_.min.y);
                     ImGui::Text("velocity:(%.3f,%.3f)acc:(%.3f,%.3f)", body->GetVelocity().x, body->GetVelocity().y, body->GetAcceleration().x, body->GetAcceleration().y);
-
+                    
                 }
                 else {
                     ImGui::Text("Body %d is nonexistence", bodyid);
@@ -295,9 +283,10 @@ int main() {
                     std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(remainingTime * 1000000)));
                 }
             }
-            
+           
             world.Interation(deltaTime,4);
             // Swap buffers and poll events
+
             window.update();
         }
 

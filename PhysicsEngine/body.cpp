@@ -1,4 +1,6 @@
 #include "body.h"
+
+
 // 计算三角形面积（逆时针顶点）
 static float GetTriangleArea(const oeVec2& v0, const oeVec2& v1, const oeVec2& v2) {
 	return 0.5f * (v0.x * (v1.y - v2.y) + v1.x * (v2.y - v0.y) + v2.x * (v0.y - v1.y));
@@ -59,19 +61,27 @@ static float inertiaPolygon(const oeVec2 points[],int vertices_count, float mass
 	return totalInertia;
 }
 
-void oeBody::Update(float time, int iterations)
+void oeBody::Update(float time, int iterations, std::vector<Constraint*>& globalConstraints)
 {
 	
 	if (stationary_)return;
-	acceleration_ = force_+constant_force_/ mass_;
-	velocity_ += (acceleration_)* time;
+	time /= iterations;
+	//acceleration_ = force_/ mass_;
+	velocity_ += (acceleration_ + oeVec2{0,-10})* time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
 	
 	acceleration_ = oeVec2::Zero();
 	Rotation(angle);
 	Move(displacement);
+	GetAABB();
 
+	// 更新约束
+	static ConstraintSolver solver;
+	solver.SetIterations(iterations);
+
+	// 解决所有约束
+	solver.Solve(globalConstraints, time);
 }
 
 oeBody::~oeBody() {
@@ -180,7 +190,7 @@ void oeBody::Rotation(const float radian) {
 		oeVec2 origin = mass_center_;
 		for (auto& vertex : vertices_) {
 			vertex -= origin;
-			oeVec2::Transform(vertex.x, vertex.y, radian);
+			oeVec2::RotationTransform(vertex.x, vertex.y, radian);
 			vertex += origin;
 		}
 		mass_center_ = (vertices_[0] + vertices_[2]) / 2.0f;
@@ -196,35 +206,30 @@ void oeBody::SetAcceleration(const oeVec2 a0)
 	acceleration_ = a0;
 }
 
-void oeBody::SetAngle(const float angle)
-{
-	angle_ = angle;
-}
-
 void oeBody::SetAngularVelocity(const float av0)
 {
 	angular_velocity_ = av0;
 }
-
-float oeBody::GetArea() const
-{
-	return area_;
-}
-
-float oeBody::GetMass()const
-{
-	return mass_;
-}
-
-float oeBody::GetDensity()const
-{
-	return density_;
-}
-
-float oeBody::GetVolume()const
-{
-	return volume_;
-}
+//
+//float oeBody::GetArea() const
+//{
+//	return area_;
+//}
+//
+//float oeBody::GetMass()const
+//{
+//	return mass_;
+//}
+//
+//float oeBody::GetDensity()const
+//{
+//	return density_;
+//}
+//
+//float oeBody::GetVolume()const
+//{
+//	return volume_;
+//}
 
 oeVec2 oeBody::GetVelocity()const
 {
@@ -236,10 +241,10 @@ oeVec2 oeBody::GetAcceleration()const
 	return acceleration_;
 }
 
-float oeBody::GetAngle()const
-{
-	return angle_;
-}
+//float oeBody::GetAngle()const
+//{
+//	return angle_;
+//}
 
 float oeBody::GetAngularVelocity()const
 {

@@ -1,23 +1,30 @@
-#pragma once
-
-#include <vector>
-#include "Body.h"
-/*检测数据
-Collision：是否碰撞（相交）
-depth:碰撞深度
-normal：分离向量
+/*
+by yangjunjie 
 */
 
-
-
+#pragma once
+#include <vector>
+#include "Body.h"
 
 struct IntersectData {
+    /*  
+        相交检测数据
+        Collision：是否碰撞（相交）
+            depth: 碰撞深度
+           normal：分离向量
+    */
     bool Collision = false;
     float depth = std::numeric_limits<float>::max();
     oeVec2 normal;
 };
 
 struct ContactData {
+    /* 
+       接触数据
+       contact_count：接触点的个数一般小于等于2个
+            contact1: 接触点一的坐标
+            contact2：接触点二的坐标
+   */
     int contact_count = 0;
     oeVec2 contact1 = {0.0f,0.0f};
     oeVec2 contact2 = { 0.0f,0.0f };;
@@ -25,6 +32,13 @@ struct ContactData {
 
 
 struct Manifold {
+    /*
+        接触流形数据
+                body_a：接触物体A
+                body_b：接触物体B
+          contact_data：接触数据
+        intersect_data：相交数据
+    */
     oeBody* body_a = nullptr;
     oeBody* body_b = nullptr;
     ContactData contact_data;
@@ -32,24 +46,32 @@ struct Manifold {
 };
 
 // 计算点到线的距离
-static float PointSegmentDistance(const oeVec2& p, const oeVec2& a, const oeVec2& b, oeVec2& cp) {
-    oeVec2 ab = b - a;
-    oeVec2 ap = p - a;
+static float PointSegmentDistanceSq(const oeVec2& point, const oeVec2& start_point, const oeVec2& end_point, oeVec2& closest_point) {
+    /*
+        该函数用于计算点到线段的距离的平方,
+        还会通过引用传出点距离线段哪个端点更近，
+                    point
+                       |
+                       |
+        start_point(closest_point)-------------end_point
+    */
+    oeVec2 ab = end_point - start_point;
+    oeVec2 ap = point - start_point;
     float proj = oeVec2::dot(ap, ab);
     float abLenSq = oeVec2::LengthSquared(ab);
     float d = proj / abLenSq;
 
     if (d <= 0) {
-        cp = a;
+        closest_point = start_point;
     }
     else if (d >= 1) {
-        cp = b;
+        closest_point = end_point;
     }
     else {
-        cp = a + ab * d;
+        closest_point = start_point + ab * d;
     }
 
-    return oeVec2::DistanceSquared(p, cp);
+    return oeVec2::DistanceSquared(point, closest_point);
 }
 
 // 判断两个区间是否重叠
@@ -71,7 +93,7 @@ namespace FindPoints {
                 oeVec2 vb = verticesB[(j + 1) % verticesB_count];
 
                 oeVec2 cp;
-                float distSq = PointSegmentDistance(verticesA[i], va, vb, cp);
+                float distSq = PointSegmentDistanceSq(verticesA[i], va, vb, cp);
 
                 if (std::abs(distSq - minDistSq) < 1e-6f) { // NearlyEqual
                     if (!cp.NearlyEqual(result.contact1)) {
@@ -93,7 +115,7 @@ namespace FindPoints {
                 oeVec2 vb = verticesA[(j + 1) % verticesA_count];
 
                 oeVec2 cp;
-                float distSq = PointSegmentDistance(verticesB[i], va, vb, cp);
+                float distSq = PointSegmentDistanceSq(verticesB[i], va, vb, cp);
 
                 if (std::abs(distSq - minDistSq) < 1e-6f) { // NearlyEqual
                     if (!cp.NearlyEqual(result.contact1)) {
@@ -122,7 +144,7 @@ namespace FindPoints {
             oeVec2 vb = polygon_vertices[(i + 1) % vertices_count];
 
             oeVec2 temp_cp;
-            float distSq = PointSegmentDistance(circle_center, va, vb, temp_cp);
+            float distSq = PointSegmentDistanceSq(circle_center, va, vb, temp_cp);
             if (distSq < minDistSq) {
                 minDistSq = distSq;
                 cp = temp_cp;

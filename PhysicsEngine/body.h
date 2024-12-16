@@ -1,23 +1,29 @@
+/*
+	by yangjunjie,website http://beisent.com
+*/
+
 #pragma once
 #include <vector>
 #include "math.h"
 #include <iostream>
 #include "forcegenerator.h"
+#include "Constraint.h"
 const int the_maximum_vertices = 8;
 
-
+//形状
 enum Shape {
-	NONE,
-	CIRCLE,
-	POLYGON
-	
+	NONE,		//无形状一般用于初始化或是已经销毁的物体
+	CIRCLE,		//圆形
+	POLYGON		//多边形
 };
 
+
+//AABB
 struct oeAABB
 {
-	bool draw_state = false;
-	oeVec2 max;
-	oeVec2 min;
+	bool draw_state = false;	//是否绘制AABB
+	oeVec2 max;					//右上角顶点坐标
+	oeVec2 min;					//左下角顶点坐标
 };
 
 
@@ -28,80 +34,58 @@ struct oeAABB
 class oeBody {
 
 private:
-	
-	//密度
-	float density_ = 0.1f;
+	float density_ = 0.1f;						//密度
 
-	//体积
-	float volume_ = 1.0f;
-	
-	//面积
-	float area_ = 1.0f;
-
-	
+	float volume_ = 1.0f;						//体积
+		
+	float area_ = 1.0f;							//面积
 public:
-	//物体旋转的角度
-	float angle_ = 0.0f;
+	float angle_ = 0.0f;						//物体旋转的角度
 
-	oeVec2 force_;
+	oeVec2 force_ = oeVec2::Zero();				//变力
 	
-	oeVec2 constant_force_;
+	oeVec2 constant_force_ = oeVec2::Zero();	//恒力
 
-	//物体的角速度,对于二维情况下角速度的方向是垂直于屏幕的所以使用float
-	float angular_velocity_ = 0.0f;
+	float angular_velocity_ = 0.0f;				//物体的角速度
 
-	//物体的线速度
-	oeVec2 velocity_ = { 0.0f,0.0f };
+	oeVec2 velocity_ = { 0.0f,0.0f };			//物体的线速度	
 
-	//物体的加速度
-	oeVec2 acceleration_ = { 0.0f,0.0f };
+	oeVec2 acceleration_ = { 0.0f,0.0f };		//物体的加速度
 
-	//物体的id
-	int body_id_ = -1;
+	int body_id_ = -1;							//物体的id，不存在表示为-1
 
-	//物体的形状
-	Shape shape_ = NONE;
+	Shape shape_ = NONE;						//物体的形状
 
-	float radius_ = 0.0f;
+	float radius_ = 0.0f;						//物体的半径
 
-	//物体的颜色分别对应，rgba
-	float color_[4] = { 0,0,0,0 };
+					  /*r g b a*/
+	float color_[4] = { 0,0,0,0 };				//物体的颜色分别对应，
 
-	//position物体的位置
-	oeVec2 mass_center_ = { 0.0f,0.0f };
+	oeVec2 mass_center_ = { 0.0f,0.0f };		//物体的位置
 
-	//polygon形状专属属性
-	oeVec2 vertices_[the_maximum_vertices] = {};
+	oeVec2 vertices_[the_maximum_vertices] = {};//polygon形状专属属性
 
-	//顶点数
-	int vertices_count_ = 0;
+	int vertices_count_ = 0;					//顶点数
 
-	//aabb包围盒的顶点
-	oeAABB aabb_;
+	oeAABB aabb_;								//aabb包围盒的顶点
 
-	//aabb包围盒的颜色
-	float aabb_color_[4] = { 0,0,0,0 };
+	float aabb_color_[4] = { 0,0,0,0 };			//aabb包围盒的颜色
 
-	//质量
-	float mass_ = 0.0f;
+	float mass_ = 0.0f;							//质量
 
-	//物体质量的倒数
-	float inverse_mass_ = 0.0f;
+	float inverse_mass_ = 0.0f;					//物体质量的倒数
 
-	//是否是静止物体
-	bool stationary_ = false;
+	bool stationary_ = false;					//是否是静止物体
 
-	//固定静摩擦力
-	float inherent_static_friction_ = 0.5f;
+	float inherent_static_friction_ = 0.5f;		//固定静摩擦力
 
-	//固定动摩擦力
-	float inherent_dynamic_friction_ = 0.3f;
+	float inherent_dynamic_friction_ = 0.3f;	//固定动摩擦力
 
-	float rotational_inertia_ = 0.0f;
-	//转动惯量的倒数
-	float inverse_rotational_inertia_ = 0.0f;
-	// 物体的恢复系数
-	float restitution_ = 0.0f;
+	float rotational_inertia_ = 0.0f;			//转动惯量
+	
+	float inverse_rotational_inertia_ = 0.0f;	//转动惯量的倒数
+	
+	float restitution_ = 0.0f;					//物体的恢复系数
 
 	//物体的析构函数
 	~oeBody();
@@ -112,38 +96,44 @@ public:
 
 	//Polygon构造函数，重载函数
 	oeBody(Shape shape, oeVec2* vertices,int vertices_count, float* color, float mass, bool state, float restitution, float inherent_static_friction_, float inherent_dynamic_friction_);
-
-
+	
+	//获取AABB包围盒
+	void GetAABB();
+	
+	//将物体移动v
 	void Move(const oeVec2 v);
-	void MoveTo(const oeVec2 v);
-	void Rotation(const float angle);
 
+	//将物体移动到v处
+	void MoveTo(const oeVec2 v);
+	
+	//将物体旋转radian度单位是弧度
+	void Rotation(const float radian);
+
+	//设置物体的速度
 	void SetVelocity(const oeVec2 v0);
+
+	//设置物体的加速度
 	void SetAcceleration(const oeVec2 a0);
-	void SetAngle(const float angle);
+
+	//设置物体的角速度
 	void SetAngularVelocity(const float av0);
 
-	float  GetArea() const;
-	float  GetMass() const;
-	float  GetDensity() const;
-	float  GetVolume() const;
-	float  GetAngle() const;
+	//float  GetArea() const;
+	//float  GetMass() const;
+	//float  GetDensity() const;
+	//float  GetVolume() const;
+	//float  GetAngle() const;
+
 	float  GetAngularVelocity() const;
 	float  GetRestitution()const;
 	bool   GetBodyState() const;
 	oeVec2 GetVelocity() const;
 	oeVec2 GetAcceleration() const;
 
-	
-	
-
-
-
-	void GetAABB();
+	//获得多边形的质心坐标
 	oeVec2 GetPolygonCentroid() const;
 
-
-	void Update(float time,int iterations);
+	void Update(float time,int iterations, std::vector<Constraint*>& globalConstraints);
 };
 
 

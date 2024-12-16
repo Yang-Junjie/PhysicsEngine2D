@@ -1,11 +1,10 @@
 #pragma once
-#include <utility> // For std::pair
 #include <cmath>   // For std::cos and std::sin
 #include <iostream>
 
-const float VerySmallAmount = 0.0000000000005f;
+const float OE_epsilon = 0.0000000000005f;
 
-struct FlatTransform
+struct RotationTransform
 {
     float cos;          // Cosine of the rotation angle
     float sin;          // Sine of the rotation angle
@@ -23,10 +22,12 @@ struct oeVec2
     static oeVec2 Zero() {
         return oeVec2{ 0.0f,0.0f };
     }
+
     friend std::ostream& operator<<(std::ostream& os, const oeVec2& p) {
         os << "(" << p.x << ", " << p.y << ")";
         return os; // 返回输出流以便链式调用  
     }
+
     // 向量相加
     oeVec2 operator+(const oeVec2& other) const
     {
@@ -87,7 +88,7 @@ struct oeVec2
     }
 
     // 向量旋转
-    static inline void Transform(float& x, float& y, const float radian)
+    static inline void RotationTransform(float& x, float& y, const float radian)
     {
         float cos_angle = static_cast<float>(std::cos(radian));
         float sin_angle = static_cast<float>(std::sin(radian));
@@ -130,7 +131,7 @@ struct oeVec2
     //向量归一化
     void normalize() {
         float length = sqrt(this->x * this->x + this->y * this->y);
-        if (length > VerySmallAmount) {
+        if (length > OE_epsilon) {
             this->x /= length;
             this->y /= length;
         }
@@ -152,7 +153,7 @@ struct oeVec2
     //向量归一化
     static oeVec2 normalize(oeVec2 v) {
         float length = oeVec2::len(v);
-        if (length > VerySmallAmount) {
+        if (length > OE_epsilon) {
             v.x /= length;
             v.y /= length;
         }
@@ -206,7 +207,7 @@ struct oeVec2
 
     //非常小判断
     static inline bool NearlyEqualVec(const oeVec2 a, const oeVec2 b) {
-        return oeVec2::DistanceSquared(a, b) < VerySmallAmount * VerySmallAmount;
+        return oeVec2::DistanceSquared(a, b) < OE_epsilon * OE_epsilon;
     }
 
     inline bool NearlyEqual(const oeVec2& other, float epsilon = 1e-6f) const {
@@ -215,7 +216,7 @@ struct oeVec2
 
     //非常小判断
     static inline bool NearlyEqual(const float a, const float b) {
-        return std::abs(a - b) < VerySmallAmount * VerySmallAmount;
+        return std::abs(a - b) < OE_epsilon * OE_epsilon;
     }
 
     // Get the direction vector (normalized)

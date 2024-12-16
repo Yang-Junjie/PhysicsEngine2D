@@ -68,11 +68,6 @@ void oeWorld::RenderAABB()
 	}
 }
 
-void oeWorld::RenderNormal(  const oeBody& body, const oeVec2& vec)
-{
-	renderer_->drawVector(body.mass_center_, vec, body.aabb_color_);
-}
-
 
 
 void oeWorld::Interation(float time,int iterations)
