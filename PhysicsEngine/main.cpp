@@ -51,22 +51,28 @@ static void dome1() {
         }
     }
 }
-static void dome4() {
-    
-    Property prop_data;
-    PolygonType polygon_data;
-   
-    
-    world.CreatPolygon(polygon_data, prop_data);
-    world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(1)->MoveTo({ 0.0f,-1.0f });
-    oeBody* bodyA = world.FindBody(0);
-    oeBody* bodyB = world.FindBody(1);
 
-    ContactConstraint* contactConstraint = new ContactConstraint(bodyA, bodyB, { 1, 0 }, { 1, 0 });
-    world.globalConstraints.push_back(contactConstraint);
-   
+static void dome4() {
+        Property prop_data;
+        PolygonType polygon_data;
+
+        // 创建两个静态刚体
+        prop_data.stationary_ = false;
+        world.CreatPolygon(polygon_data, prop_data);
+        world.FindBody(0)->MoveTo({ 0.0f, -1.0f });
+        prop_data.stationary_ = true;
+        world.CreatPolygon(polygon_data, prop_data);
+        world.FindBody(1)->MoveTo({ 0.0f, 1.0f });
+
+        // 获取两个刚体
+        oeBody* bodyA = world.FindBody(0);
+        oeBody* bodyB = world.FindBody(1);
+
+        /// 创建接触约束
+       // ContactConstraint* contactConstraint = new ContactConstraint(bodyA, bodyB, { 0.0f, 0.0f }, { 0.0f, 1.0f }, 0.0f);
+     //   world.AddConstraint(contactConstraint); // 假设世界类有一个 AddConstraint 方法来添加约束
 }
+
 
 
 static void dome2() {
@@ -147,7 +153,7 @@ static void dome3() {
 
 static void ContorlAllBody() {
     for (auto& body : *(world.GetBodysList())) {
-        body.Rotation(oeVec2::AngleToRadian(1));
+        body->Rotation(oeVec2::AngleToRadian(1));
     }
 }
 
@@ -177,7 +183,7 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome1();
+        dome4();
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间

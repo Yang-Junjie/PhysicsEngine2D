@@ -7,7 +7,7 @@
 #include "math.h"
 #include <iostream>
 #include "forcegenerator.h"
-#include "Constraint.h"
+
 const int the_maximum_vertices = 8;
 
 //形状
@@ -39,7 +39,11 @@ private:
 	float volume_ = 1.0f;						//体积
 		
 	float area_ = 1.0f;							//面积
+	bool dirty_ = true; // 默认为脏状态
 public:
+	bool IsDirty() const { return dirty_; } // 是否发生变化
+	void SetDirty(bool dirty) { dirty_ = dirty; }
+
 	float angle_ = 0.0f;						//物体旋转的角度
 
 	oeVec2 force_ = oeVec2::Zero();				//变力
@@ -87,6 +91,7 @@ public:
 	
 	float restitution_ = 0.0f;					//物体的恢复系数
 
+	oeBody();
 	//物体的析构函数
 	~oeBody();
 	//oeBody();
@@ -133,7 +138,7 @@ public:
 	//获得多边形的质心坐标
 	oeVec2 GetPolygonCentroid() const;
 
-	void Update(float time,int iterations, std::vector<Constraint*>& globalConstraints);
+	void Update(float time,int iterations);
 };
 
 

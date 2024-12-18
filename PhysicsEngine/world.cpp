@@ -12,14 +12,16 @@ oeWorld::oeWorld(Renderer* renderer)
 
 oeWorld::~oeWorld()
 {
+	ClearConstraints(); // 释放所有约束的内存
+	ClearBodys();
 }
 
 void oeWorld::CreatCircle(CircleType type_data, Property prop_data)
 {
-	oeBody tmp(CIRCLE,type_data.radius, type_data.color, type_data.position, prop_data.mass_, prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
+	oeBody* tmp = new oeBody(CIRCLE,type_data.radius, type_data.color, type_data.position, prop_data.mass_, prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
 	++id_count;
-	tmp.body_id_ = id_count;
-	tmp.constant_force_ = prop_data.constant_force;
+	tmp->body_id_ = id_count;
+	tmp->constant_force_ = prop_data.constant_force;
 	bodys_list_.push_back(tmp);
 	//bodys_list_[id_count] = tmp;
 	//AddBody(*FindBody(id_count));
@@ -27,35 +29,65 @@ void oeWorld::CreatCircle(CircleType type_data, Property prop_data)
 
 void oeWorld::CreatPolygon(PolygonType type_data,Property prop_data)
 {
-	oeBody tmp(POLYGON, type_data.vertices, type_data.vertces_count, type_data.color,prop_data.mass_,prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
+	oeBody* tmp = new oeBody(POLYGON, type_data.vertices, type_data.vertces_count, type_data.color,prop_data.mass_,prop_data.stationary_, prop_data.restitution_, prop_data.inherent_static_friction_, prop_data.inherent_dynamic_friction_);
 	++id_count;
-	tmp.body_id_ = id_count;
-	tmp.constant_force_ = prop_data.constant_force;
+	tmp->body_id_ = id_count;
+	tmp->constant_force_ = prop_data.constant_force;
 	bodys_list_.push_back(tmp);
 	
 	//bodys_list_[id_count] = tmp;
 	//AddBody(*FindBody(id_count));
 }
 
+void oeWorld::ClearBodys()
+{
+	for (auto& body : bodys_list_) {
+		delete body;
+	}
+}
+
+void oeWorld::AddConstraint(Constraint* constraint) {
+	if (constraint == nullptr) {
+		return; // 防止添加空指针
+	}
+
+	// 可选：检查约束是否已经存在
+	for (auto* existing_constraint : globalConstraints) {
+		if (existing_constraint == constraint) {
+			return; // 约束已存在，不再重复添加
+		}
+	}
+
+	// 将约束添加到全局约束列表中
+	globalConstraints.push_back(constraint);
+}
+
+void oeWorld::ClearConstraints() {
+	for (auto* constraint : globalConstraints) {
+		delete constraint; // 释放每个约束的内存
+	}
+	globalConstraints.clear(); // 清空约束列表
+}
+
 oeBody* oeWorld::FindBody(const int id)
 {
-	if (bodys_list_[id].body_id_ == -1) {
+	if (bodys_list_[id]->body_id_ == -1) {
 		return nullptr;
 	}
 	else {
-		return &bodys_list_[id];
+		return bodys_list_[id];
 	}
 }
 
 void oeWorld::RenderBody()
 {
 	for (auto& body : bodys_list_) {
-		if (body.shape_ == CIRCLE) {
+		if (body->shape_ == CIRCLE) {
 			
-			renderer_->drawCircle(body.mass_center_.x, body.mass_center_.y, body.radius_, body.color_,36);
+			renderer_->drawCircle(body->mass_center_.x, body->mass_center_.y, body->radius_, body->color_,36);
 		}
-		else if (body.shape_ == POLYGON) {
-			renderer_->drawPolygon(body.vertices_, body.vertices_count_, body.color_);
+		else if (body->shape_ == POLYGON) {
+			renderer_->drawPolygon(body->vertices_, body->vertices_count_, body->color_);
 		}
 	}
 }
@@ -64,7 +96,7 @@ void oeWorld::RenderAABB()
 {
 	
 	for (auto& body : bodys_list_) {
-		renderer_->drawAABB(body.aabb_,body.aabb_color_);
+		renderer_->drawAABB(body->aabb_,body->aabb_color_);
 	}
 }
 
@@ -75,10 +107,10 @@ void oeWorld::Interation(float time,int iterations)
 	//每次迭代前清除aabb相交的物体
 	this->contact_body_.clear();
 	for (auto& body : bodys_list_) {
-		if (!body.GetBodyState()) {
-			body.Update(time, iterations);
+		if (!body->GetBodyState()) {
+			body->Update(time, iterations);
 			// 确保body.aabb_已经被正确设置
-			body.GetAABB();
+			body->GetAABB();
 
 			
 		}
@@ -86,6 +118,17 @@ void oeWorld::Interation(float time,int iterations)
 	
 	BroadPhase();
 	NarrowPhase();
+	// 应用所有约束
+	 // 应用所有约束
+	for (int i = 0; i < iterations; ++i) {
+		//std::cout << globalConstraints.size();
+		for (auto* constraint : globalConstraints) {
+			//std::cout << 1;
+			constraint->Apply(bodys_list_, time);
+		}
+	}
+	// 清除全局约束（避免累积）
+//	ClearConstraints();
 }
 
 
@@ -94,7 +137,7 @@ int oeWorld::GetBodyNum() const
 	return id_count+1;
 }
 
-std::vector<oeBody>* oeWorld::GetBodysList()
+std::vector<oeBody*>* oeWorld::GetBodysList()
 {
 	return &bodys_list_;
 }
@@ -105,72 +148,15 @@ void oeWorld::SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_
 {
 	if (body_a.GetBodyState()) {
 		body_b.Move(separation_vector / 2);
-		
-		//RenderNormal(body_b, separation_vector * 1000.0f);
 	}
 	else if (body_b.GetBodyState()) {
 		body_a.Move(-separation_vector / 2);
-		
-		//RenderNormal(body_b, -separation_vector * 1000.0f / 2);
-
 	}
 	else {
 		body_a.Move(-separation_vector / 2);
 		body_b.Move(separation_vector / 2);
-		//RenderNormal(body_a, -separation_vector*1000.0f / 2);
-		//RenderNormal(body_b, separation_vector * 1000.0f / 2);
 	}
 }
-
-//
-//void oeWorld::BroadPhase() {
-//	std::unordered_map<int, bool> colored;
-//
-//	for (size_t i = 0; i < bodys_list_.size(); ++i) {
-//		auto& body_a = bodys_list_[i];
-//
-//		// 获取可能的碰撞器
-//		auto potential_colliders = spatial_hash_.GetPotentialColliders(body_a);
-//		for (auto& collider_id : potential_colliders) {
-//			if (collider_id == body_a.body_id_) continue;
-//			auto& body_b = bodys_list_[collider_id];
-//
-//			if (body_a.GetBodyState() && body_b.GetBodyState()) {
-//				continue;
-//			}
-//
-//			// 检测
-//			bool intersect = Intersect::IntersectAABB(body_a.aabb_, body_b.aabb_);
-//
-//			// 如果没有相交则继续下一个物体的检测
-//			if (!intersect) {
-//				continue;
-//			}
-//			else {
-//				colored[body_a.body_id_] = true;
-//				colored[body_b.body_id_] = true;
-//				std::pair<oeBody&, oeBody&> pair_body(body_a, body_b);
-//				contact_body_.push_back(pair_body);
-//			}
-//		}
-//	}
-//
-//	// 再对标记过的物体的aabb进行上色
-//	for (auto& body : bodys_list_) {
-//		if (colored[body.body_id_]) {
-//			body.aabb_color_[0] = 1.0f;
-//			body.aabb_color_[1] = 1.0f;
-//			body.aabb_color_[2] = 1.0f;
-//			body.aabb_color_[3] = 1.0f;
-//		}
-//		else {
-//			body.aabb_color_[0] = 1.0f;
-//			body.aabb_color_[1] = 0.0f;
-//			body.aabb_color_[2] = 0.0f;
-//			body.aabb_color_[3] = 1.0f;
-//		}
-//	}
-//}
 
 void oeWorld::BroadPhase() {
 	// 对需要对aabb上色的物体进行标记
@@ -180,19 +166,19 @@ void oeWorld::BroadPhase() {
 	// 开始判断两个物体的aabb是否相交
 	for (size_t i = 0; i < bodys_list_.size(); ++i) {
 		auto& body_a = bodys_list_[i];
-		body_a.GetAABB();
+		body_a->GetAABB();
 
 		for (size_t j = 0; j < bodys_list_.size(); ++j) {
 			auto& body_b = bodys_list_[j];
-			body_b.GetAABB();
+			body_b->GetAABB();
 
 
-			if (body_a.GetBodyState() && body_b.GetBodyState() || body_a.body_id_ == body_b.body_id_) {
+			if (body_a->GetBodyState() && body_b->GetBodyState() || body_a->body_id_ == body_b->body_id_) {
 				continue;
 			}
 
 			// 检测
-			bool intersect = Intersect::IntersectAABB(body_a.aabb_, body_b.aabb_);
+			bool intersect = Intersect::IntersectAABB(body_a->aabb_, body_b->aabb_);
 
 			// 如果没有相交则继续下一个物体的检测
 			if (!intersect) {
@@ -201,9 +187,9 @@ void oeWorld::BroadPhase() {
 				continue;
 			}
 			else {
-				colored[body_a.body_id_] = true;
-				colored[body_b.body_id_] = true;
-				std::pair<oeBody&, oeBody&> pair_body(body_a, body_b);
+				colored[body_a->body_id_] = true;
+				colored[body_b->body_id_] = true;
+				std::pair<oeBody*, oeBody*> pair_body(body_a, body_b);
 				contact_body_.push_back(pair_body);
 
 
@@ -211,22 +197,21 @@ void oeWorld::BroadPhase() {
 			}
 		}
 	}
-
 	//再对标记过的物体的aabb进行上色
 	for (auto& body : bodys_list_) {
-		if (colored[body.body_id_]) {
+		if (colored[body->body_id_]) {
 
-			body.aabb_color_[0] = 1.0f;
-			body.aabb_color_[1] = 1.0f;
-			body.aabb_color_[2] = 1.0f;
-			body.aabb_color_[3] = 1.0f;
+			body->aabb_color_[0] = 1.0f;
+			body->aabb_color_[1] = 1.0f;
+			body->aabb_color_[2] = 1.0f;
+			body->aabb_color_[3] = 1.0f;
 
 		}
 		else {
-			body.aabb_color_[0] = 1.0f;
-			body.aabb_color_[1] = 0.0f;
-			body.aabb_color_[2] = 0.0f;
-			body.aabb_color_[3] = 1.0f;
+			body->aabb_color_[0] = 1.0f;
+			body->aabb_color_[1] = 0.0f;
+			body->aabb_color_[2] = 0.0f;
+			body->aabb_color_[3] = 1.0f;
 		}
 	}
 }
@@ -238,28 +223,15 @@ void oeWorld::NarrowPhase()
 	for (auto& pair : this->contact_body_) {
 
 		//对这两个物体使用碰撞检测，判断这两个物体是否发生碰撞
-
-		IntersectData intersect_data = Collide(pair.first, pair.second);
+		IntersectData intersect_data = Collide(*pair.first, *pair.second);
 		
 		//如果发生碰撞，则计算分离向量，并分离这两个物体
 		if (intersect_data.Collision) {
-
 			oeVec2 separation_vector = intersect_data.normal * intersect_data.depth;
-			SepareteBodies(pair.first, pair.second, separation_vector);
-			ContactData contact_data = FindContactPoints(pair.first, pair.second);
-			Manifold manifold = { &pair.first, &pair.second,contact_data,intersect_data };
-			ResolveCollisionWithRotationAndFriction(manifold);
-			/*if (manifold.contact_data.contact_count == 1) {
-				renderer_->drawPoint( manifold.contact_data.contact1, manifold.body_a->aabb_color_);
-				
-			}
-			else {
-				renderer_->drawPoint( manifold.contact_data.contact1, manifold.body_a->aabb_color_);
-				renderer_->drawPoint( manifold.contact_data.contact2, manifold.body_a->aabb_color_);
-
-			}*/
-			
-			
+			SepareteBodies(*pair.first, *pair.second, separation_vector);
+			ContactData contact_data = FindContactPoints(*pair.first, *pair.second);
+			Manifold manifold = { pair.first, pair.second,contact_data,intersect_data };
+			ResolveCollisionWithRotationAndFriction(manifold);	
 		}
 
 	}

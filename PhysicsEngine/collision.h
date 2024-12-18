@@ -164,7 +164,7 @@ namespace FindPoints {
     static int FindVertexClosestPoint(const oeVec2& point, const oeVec2 vertices[], const int vertices_count) {
         int result = 0;
         float min_distance = std::numeric_limits<float>::max();
-        for (size_t i = 0; i < vertices_count; ++i) {
+        for (int i = 0; i < vertices_count; ++i) {
             float distance = oeVec2::Distance(vertices[i], point);
             if (distance <= min_distance) {
                 min_distance = distance;

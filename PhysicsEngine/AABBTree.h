@@ -15,7 +15,7 @@ public:
     void Query(const oeAABB& aabb, std::vector<int>& potential_contacts);
 
     // 重新平衡树（可选）
-    void Rebalance();
+  //  void Rebalance();
 
 private:
     AABBTreeNode* root_ = nullptr;  // 树的根节点

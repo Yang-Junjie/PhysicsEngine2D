@@ -61,7 +61,7 @@ static float inertiaPolygon(const oeVec2 points[],int vertices_count, float mass
 	return totalInertia;
 }
 
-void oeBody::Update(float time, int iterations, std::vector<Constraint*>& globalConstraints)
+void oeBody::Update(float time, int iterations)
 {
 	
 	if (stationary_)return;
@@ -77,11 +77,15 @@ void oeBody::Update(float time, int iterations, std::vector<Constraint*>& global
 	GetAABB();
 
 	// 更新约束
-	static ConstraintSolver solver;
-	solver.SetIterations(iterations);
+	//static ConstraintSolver solver;
+	//solver.SetIterations(iterations);
 
 	// 解决所有约束
-	solver.Solve(globalConstraints, time);
+	//solver.Solve();
+}
+
+oeBody::oeBody()
+{
 }
 
 oeBody::~oeBody() {
