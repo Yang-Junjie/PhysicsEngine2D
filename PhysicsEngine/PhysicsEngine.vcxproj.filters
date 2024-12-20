@@ -83,6 +83,9 @@
     <ClCompile Include="AABBTree.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="Constraint.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imconfig.h">
@@ -154,13 +157,10 @@
     <ClInclude Include="forcegenerator.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="AABBTreeNode.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="AABBTree.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="Constraint.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="manifold.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

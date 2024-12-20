@@ -4,6 +4,22 @@
 
 const float OE_epsilon = 0.0000000000005f;
 
+
+inline float Clamp(float a, float low, float high)
+{
+    return std::max(low, std::min(a, high));
+}
+
+inline float Min(float a, float b)
+{
+    return a < b ? a : b;
+}
+
+inline float Max(float a, float b)
+{
+    return a > b ? a : b;
+}
+
 struct RotationTransform
 {
     float cos;          // Cosine of the rotation angle
@@ -177,6 +193,16 @@ struct oeVec2
     //向量的叉积
     float cross(const oeVec2& v) const {
         return this->x * v.y - this->y * v.x;
+    }
+
+    static inline oeVec2 cross(const oeVec2& a, float s)
+    {
+        return oeVec2(s * a.y, -s * a.x);
+    }
+
+    static inline oeVec2 cross(float s, const oeVec2& a)
+    {
+        return oeVec2(-s * a.y, s * a.x);
     }
 
     static inline float cross(const oeVec2& v1, const oeVec2& v2) {

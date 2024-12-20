@@ -35,12 +35,14 @@ static void dome1() {
     PolygonType polygon_data;
     CircleType data1;
     PolygonType data3;
+
     prop_data.restitution_ = 0;
     prop_data.stationary_ = true;
     polygon_data.vertices[2] = { 10.0f,-0.1f };
     polygon_data.vertices[3] = { 10.0f,0.1f };
     world.CreatPolygon(polygon_data, prop_data);
     world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
     prop_data.stationary_ = false;
     for (int i = 10; i > 0; i--) {
         for (int j = 10 - i; j >= 0; j--) {
@@ -56,21 +58,21 @@ static void dome4() {
         Property prop_data;
         PolygonType polygon_data;
 
-        // 创建两个静态刚体
-        prop_data.stationary_ = false;
-        world.CreatPolygon(polygon_data, prop_data);
-        world.FindBody(0)->MoveTo({ 0.0f, -1.0f });
+        prop_data.restitution_ = 0;
         prop_data.stationary_ = true;
+        polygon_data.vertices[2] = { 10.0f,-0.1f };
+        polygon_data.vertices[3] = { 10.0f,0.1f };
         world.CreatPolygon(polygon_data, prop_data);
+        world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
+        PolygonType data3;
+        prop_data.stationary_ = false;
+        world.CreatPolygon(data3, prop_data);
         world.FindBody(1)->MoveTo({ 0.0f, 1.0f });
 
-        // 获取两个刚体
         oeBody* bodyA = world.FindBody(0);
         oeBody* bodyB = world.FindBody(1);
 
-        /// 创建接触约束
-       // ContactConstraint* contactConstraint = new ContactConstraint(bodyA, bodyB, { 0.0f, 0.0f }, { 0.0f, 1.0f }, 0.0f);
-     //   world.AddConstraint(contactConstraint); // 假设世界类有一个 AddConstraint 方法来添加约束
 }
 
 

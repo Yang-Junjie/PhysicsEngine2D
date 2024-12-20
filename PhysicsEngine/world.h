@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "AABBTree.h" // 引入AABB树
 #include "Constraint.h"
+#include <map>
 
 class oeWorld {
 private:
@@ -15,13 +16,13 @@ private:
 	int id_count = -1;											//物体数下标从0，1，2，····，n
 	std::vector<oeBody*> bodys_list_;							//物体列表
 	std::vector<std::pair<oeBody*, oeBody*>> contact_body_;		//接触物体对
-	std::unique_ptr<AABBTree> aabb_tree_;						// 新增AABB树成员
-	std::vector<Constraint*> globalConstraints;                 // 全局约束列表
+	
+	
 	
 
 	void SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_vector); //分离接触物体
 	void BroadPhase();																
-	void NarrowPhase();
+	void NarrowPhase(float dt);
 public:
 	
 	oeWorld(Renderer* renderer);
@@ -31,10 +32,8 @@ public:
 	void CreatCircle(CircleType type_data, Property prop_data);
 	void CreatPolygon(PolygonType type_data,Property prop_data);
 	void ClearBodys();
-	//添加约束
-	void AddConstraint(Constraint* constraint);
-	// 清除所有约束
-	void ClearConstraints();
+
+	
 
 	void RenderBody();
 	void RenderAABB();

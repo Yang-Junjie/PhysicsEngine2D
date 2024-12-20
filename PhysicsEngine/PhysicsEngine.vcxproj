@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AABBTree.cpp" />
+    <ClCompile Include="Constraint.cpp" />
     <ClCompile Include="forcegenerator.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="imgui.cpp" />
@@ -155,8 +156,6 @@
     <ClCompile Include="world.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AABBTree.h" />
-    <ClInclude Include="AABBTreeNode.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="Constraint.h" />
     <ClInclude Include="dynamictree.h" />
@@ -172,6 +171,7 @@
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="manifold.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="body.h" />
     <ClInclude Include="Renderer.h" />

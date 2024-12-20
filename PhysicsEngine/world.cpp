@@ -1,8 +1,13 @@
 #include "world.h"
+#include <map>
 
-
+using std::vector;
+using std::map;
+using std::pair;
 
 static void ResolveCollisionWithRotationAndFriction(Manifold& contact);
+static void PreStep(Manifold* manifold_, float inv_dt);
+static void ApplyImpulse(Manifold*);
 
 oeWorld::oeWorld(Renderer* renderer)
 	:renderer_(renderer)
@@ -12,7 +17,7 @@ oeWorld::oeWorld(Renderer* renderer)
 
 oeWorld::~oeWorld()
 {
-	ClearConstraints(); // 释放所有约束的内存
+	
 	ClearBodys();
 }
 
@@ -46,28 +51,6 @@ void oeWorld::ClearBodys()
 	}
 }
 
-void oeWorld::AddConstraint(Constraint* constraint) {
-	if (constraint == nullptr) {
-		return; // 防止添加空指针
-	}
-
-	// 可选：检查约束是否已经存在
-	for (auto* existing_constraint : globalConstraints) {
-		if (existing_constraint == constraint) {
-			return; // 约束已存在，不再重复添加
-		}
-	}
-
-	// 将约束添加到全局约束列表中
-	globalConstraints.push_back(constraint);
-}
-
-void oeWorld::ClearConstraints() {
-	for (auto* constraint : globalConstraints) {
-		delete constraint; // 释放每个约束的内存
-	}
-	globalConstraints.clear(); // 清空约束列表
-}
 
 oeBody* oeWorld::FindBody(const int id)
 {
@@ -102,33 +85,20 @@ void oeWorld::RenderAABB()
 
 
 
-void oeWorld::Interation(float time,int iterations)
+void oeWorld::Interation(float dt,int iterations)
 {
+	float inv_dt = dt > 0.0f ? 1.0f / dt : 0.0f;
 	//每次迭代前清除aabb相交的物体
 	this->contact_body_.clear();
+	BroadPhase();
+
 	for (auto& body : bodys_list_) {
 		if (!body->GetBodyState()) {
-			body->Update(time, iterations);
-			// 确保body.aabb_已经被正确设置
-			body->GetAABB();
-
-			
+			body->Update(dt, iterations);
 		}
 	}
+	NarrowPhase(dt);
 	
-	BroadPhase();
-	NarrowPhase();
-	// 应用所有约束
-	 // 应用所有约束
-	for (int i = 0; i < iterations; ++i) {
-		//std::cout << globalConstraints.size();
-		for (auto* constraint : globalConstraints) {
-			//std::cout << 1;
-			constraint->Apply(bodys_list_, time);
-		}
-	}
-	// 清除全局约束（避免累积）
-//	ClearConstraints();
 }
 
 
@@ -171,19 +141,15 @@ void oeWorld::BroadPhase() {
 		for (size_t j = 0; j < bodys_list_.size(); ++j) {
 			auto& body_b = bodys_list_[j];
 			body_b->GetAABB();
-
-
 			if (body_a->GetBodyState() && body_b->GetBodyState() || body_a->body_id_ == body_b->body_id_) {
 				continue;
 			}
-
+			
 			// 检测
 			bool intersect = Intersect::IntersectAABB(body_a->aabb_, body_b->aabb_);
 
 			// 如果没有相交则继续下一个物体的检测
 			if (!intersect) {
-
-
 				continue;
 			}
 			else {
@@ -217,7 +183,7 @@ void oeWorld::BroadPhase() {
 }
 
 
-void oeWorld::NarrowPhase()
+void oeWorld::NarrowPhase(float dt)
 {
 	//遍历AABB相交的物体
 	for (auto& pair : this->contact_body_) {
@@ -231,9 +197,138 @@ void oeWorld::NarrowPhase()
 			SepareteBodies(*pair.first, *pair.second, separation_vector);
 			ContactData contact_data = FindContactPoints(*pair.first, *pair.second);
 			Manifold manifold = { pair.first, pair.second,contact_data,intersect_data };
-			ResolveCollisionWithRotationAndFriction(manifold);	
+			ResolveCollisionWithRotationAndFriction(manifold);
+
+
+
+
+
+			//	|
+			// 接触约束
+			// PreStep(&manifold,dt);
+			// ApplyImpulse(&manifold);
 		}
 
+	}
+}
+
+static void PreStep(Manifold* manifold_,float inv_dt)
+{
+	const float k_allowedPenetration = 0.01f;
+	float k_biasFactor = 0.2f; //World::positionCorrection ? 0.2f : 0.0f;
+	oeBody* body1 = manifold_->body_a;
+	oeBody* body2 = manifold_->body_b;
+	for (int i = 0; i < manifold_->contact_data.contact_count; ++i)
+	{
+		
+
+		oeVec2 r1 = manifold_->contact_data.contact1 - body1->mass_center_;
+		oeVec2 r2 = manifold_->contact_data.contact1 - body2->mass_center_;
+
+		// Precompute normal mass, tangent mass, and bias.
+		float rn1 = oeVec2::dot(r1, manifold_->intersect_data.normal);
+		float rn2 = oeVec2::dot(r2, manifold_->intersect_data.normal);
+		float kNormal = body1->inverse_mass_ + body2->inverse_mass_;
+		kNormal += body1->inverse_rotational_inertia_ * (oeVec2::dot(r1, r1) - rn1 * rn1) + body2->inverse_rotational_inertia_ * (oeVec2::dot(r2, r2) - rn2 * rn2);
+		manifold_->massNormal = 1.0f / kNormal;
+
+		oeVec2 tangent = oeVec2::cross(manifold_->intersect_data.normal, 1.0f);
+		float rt1 = oeVec2::dot(r1, tangent);
+		float rt2 = oeVec2::dot(r2, tangent);
+		float kTangent = body1->inverse_mass_ + body2->inverse_mass_;
+		kTangent += body1->inverse_rotational_inertia_ * (oeVec2::dot(r1, r1) - rt1 * rt1) + body2->inverse_rotational_inertia_ * (oeVec2::dot(r2, r2) - rt2 * rt2);
+		manifold_->massTangent = 1.0f / kTangent;
+
+		manifold_->bias = -k_biasFactor * inv_dt * Min(0.0f, manifold_->separation + k_allowedPenetration);
+
+		/*if (World::accumulateImpulses)
+		{*/
+		// Apply normal + friction impulse
+		oeVec2 P = manifold_->Pn * manifold_->intersect_data.normal + manifold_->Pt * tangent;
+
+		body1->velocity_ -= body1->inverse_mass_ * P;
+		body1->angular_velocity_ -= body1->inverse_rotational_inertia_ * oeVec2::cross(r1, P);
+
+		body2->velocity_ += body2->inverse_mass_ * P;
+		body2->angular_velocity_ += body2->inverse_rotational_inertia_ * oeVec2::cross(r2, P);
+		//}
+	}
+}
+
+static void ApplyImpulse(Manifold* manifold_)
+{
+	oeBody* b1 = manifold_->body_a;
+	oeBody* b2 = manifold_->body_b;
+	
+		
+	float friction = sqrtf(b1->inherent_dynamic_friction_*b2->inherent_dynamic_friction_);
+
+	for (int i = 0; i < manifold_->contact_data.contact_count; ++i)
+	{
+
+		manifold_->r1 = manifold_->contact_data.contact1 - b1->mass_center_;
+		manifold_->r2 = manifold_->contact_data.contact2 - b2->mass_center_;
+
+		// Relative velocity at contact
+		oeVec2 dv = b2->velocity_ + oeVec2::cross(b2->angular_velocity_, manifold_->r2) - b1->velocity_ - oeVec2::cross(b1->angular_velocity_, manifold_->r1);
+
+		// Compute normal impulse
+		float vn = oeVec2::dot(dv, manifold_->intersect_data.normal);
+
+		float dPn = manifold_->massNormal * (-vn + manifold_->bias);
+
+		/*if (World::accumulateImpulses)
+		{*/
+		// Clamp the accumulated impulse
+		float Pn0 = manifold_->Pn;
+		manifold_->Pn = std::max(Pn0 + dPn, 0.0f);
+		dPn = manifold_->Pn - Pn0;
+		/*}
+		else
+		{
+			dPn = Max(dPn, 0.0f);
+		}*/
+
+		// Apply contact impulse
+		oeVec2 Pn = dPn * manifold_->intersect_data.normal;
+
+		b1->velocity_ -= b1->inverse_mass_ * Pn;
+		b1->angular_velocity_ -= b1->inverse_rotational_inertia_ * oeVec2::cross(manifold_->r1, Pn);
+
+		b2->velocity_ += b2->inverse_mass_ * Pn;
+		b2->angular_velocity_ += b2->inverse_rotational_inertia_ * oeVec2::cross(manifold_->r2, Pn);
+
+		// Relative velocity at contact
+		dv = b2->velocity_ + oeVec2::cross(b2->angular_velocity_, manifold_->r2) - b1->velocity_ - oeVec2::cross(b1->angular_velocity_, manifold_->r1);
+
+		oeVec2 tangent = oeVec2::cross(manifold_->intersect_data.normal, 1.0f);
+		float vt = oeVec2::dot(dv, tangent);
+		float dPt = manifold_->massTangent * (-vt);
+
+		/*if (World::accumulateImpulses)
+		{*/
+		// Compute friction impulse
+		float maxPt = friction * manifold_->Pn;
+
+		// Clamp friction
+		float oldTangentImpulse = manifold_->Pt;
+		manifold_->Pt = Clamp(oldTangentImpulse + dPt, -maxPt, maxPt);
+		dPt = manifold_->Pt - oldTangentImpulse;
+		/*}
+		else
+		{
+			float maxPt = friction * dPn;
+			dPt = Clamp(dPt, -maxPt, maxPt);
+		}*/
+
+		// Apply contact impulse
+		oeVec2 Pt = dPt * tangent;
+
+		b1->velocity_ -= b1->inverse_mass_ * Pt;
+		b1->angular_velocity_ -= b1->inverse_rotational_inertia_ * oeVec2::cross(manifold_->r1, Pt);
+
+		b2->velocity_ += b2->inverse_mass_ * Pt;
+		b2->angular_velocity_ += b2->inverse_rotational_inertia_ * oeVec2::cross(manifold_->r2, Pt);
 	}
 }
 
