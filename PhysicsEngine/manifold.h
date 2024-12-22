@@ -1,6 +1,7 @@
 #pragma once
 #include "math.h"
 #include "body.h"
+
 struct IntersectData {
     /*
         相交检测数据
@@ -13,7 +14,6 @@ struct IntersectData {
     oeVec2 normal;
     
 };
-
 struct ContactData {
     /*
        接触数据
@@ -23,10 +23,8 @@ struct ContactData {
    */
     int contact_count = 0;
     oeVec2 contact1 = { 0.0f,0.0f };
-    oeVec2 contact2 = { 0.0f,0.0f };;
+    oeVec2 contact2 = { 0.0f,0.0f };
 };
-
-
 struct Manifold {
     /*
         接触流形数据
@@ -39,11 +37,4 @@ struct Manifold {
     oeBody* body_b = nullptr;
     ContactData contact_data;
     IntersectData intersect_data;
-    oeVec2 r1, r2;
-    float separation;
-    float Pn;	// accumulated normal impulse
-    float Pt;	// accumulated tangent impulse
-    float Pnb;	// accumulated normal impulse for position bias
-    float massNormal, massTangent;
-    float bias;
 };

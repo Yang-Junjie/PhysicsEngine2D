@@ -5,10 +5,6 @@
 #include "type.h"
 #include "Renderer.h"
 #include "collision.h"
-#include <unordered_map>
-#include "AABBTree.h" // 引入AABB树
-#include "Constraint.h"
-#include <map>
 
 class oeWorld {
 private:
@@ -18,8 +14,6 @@ private:
 	std::vector<std::pair<oeBody*, oeBody*>> contact_body_;		//接触物体对
 	
 	
-	
-
 	void SepareteBodies(oeBody& body_a, oeBody& body_b, oeVec2& separation_vector); //分离接触物体
 	void BroadPhase();																
 	void NarrowPhase(float dt);
@@ -29,16 +23,13 @@ public:
 	~oeWorld();
 	
 	
-	void CreatCircle(CircleType type_data, Property prop_data);
-	void CreatPolygon(PolygonType type_data,Property prop_data);
+	oeBody* CreatCircle(CircleType type_data, Property prop_data);
+	oeBody* CreatPolygon(PolygonType type_data,Property prop_data);
 	void ClearBodys();
 
-	
 
 	void RenderBody();
 	void RenderAABB();
-	
-
 
 	int GetBodyNum() const;
 	oeBody* FindBody(const int id);

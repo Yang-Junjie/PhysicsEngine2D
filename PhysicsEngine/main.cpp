@@ -13,76 +13,55 @@
 #include "ImGuiManager.h"
 #include "InputHandler.h"
 #include "math.h"
-
 #include "body.h"
 #include "type.h"
 #include "world.h"
 #include "collision.h"
 
 Renderer renderer;
+
 oeWorld world(&renderer);
 
 bool lock120FPS = true;
 bool intersect = false;
 static int bodyid = 0; // 创建一个变量来保存输入的整型值
-
+static bool checkbox_state = false;
 oeBody* selectedBody = nullptr;
 
-//金字塔
+
+//简单方块
 static void dome1() {
-    int count = 1;
     Property prop_data;
     PolygonType polygon_data;
-    CircleType data1;
-    PolygonType data3;
 
-    prop_data.restitution_ = 0;
+    prop_data.restitution_ = -0.5f;
     prop_data.stationary_ = true;
-    polygon_data.vertices[2] = { 10.0f,-0.1f };
-    polygon_data.vertices[3] = { 10.0f,0.1f };
+    polygon_data.vertices[0] = { -10.0f,0.01f };
+    polygon_data.vertices[1] = { -10.0f,-0.01f };
+    polygon_data.vertices[2] = { 10.0f,-0.01f };
+    polygon_data.vertices[3] = { 10.0f,0.01f };
+
+
     world.CreatPolygon(polygon_data, prop_data);
     world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
 
+    PolygonType data3;
     prop_data.stationary_ = false;
-    for (int i = 10; i > 0; i--) {
-        for (int j = 10 - i; j >= 0; j--) {
+    world.CreatPolygon(data3, prop_data);
+    world.FindBody(1)->MoveTo({ 0.0f, 0.2f });
 
-            world.CreatPolygon(data3, prop_data);
-            world.FindBody(count)->Move({ (i) * 0.2f + j * 0.1f, (j) * 0.2f });
-            count++;
-        }
-    }
-}
+    oeBody* bodyA = world.FindBody(0);
+    oeBody* bodyB = world.FindBody(1);
 
-static void dome4() {
-        Property prop_data;
-        PolygonType polygon_data;
-
-        prop_data.restitution_ = 0;
-        prop_data.stationary_ = true;
-        polygon_data.vertices[2] = { 10.0f,-0.1f };
-        polygon_data.vertices[3] = { 10.0f,0.1f };
-        world.CreatPolygon(polygon_data, prop_data);
-        world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
-
-        PolygonType data3;
-        prop_data.stationary_ = false;
-        world.CreatPolygon(data3, prop_data);
-        world.FindBody(1)->MoveTo({ 0.0f, 1.0f });
-
-        oeBody* bodyA = world.FindBody(0);
-        oeBody* bodyB = world.FindBody(1);
+    OE_ZOOM = 1.0f;
 
 }
 
-
-
+//多米诺骨牌
 static void dome2() {
 
-    ForceGenerator forceGen;
     int count = 4;
     Property prop_data;
-    prop_data.constant_force = forceGen.GenGravity({ 0.0f,-10.0f });
     prop_data.inherent_static_friction_ = 0.6f;
     prop_data.inherent_dynamic_friction_ = 0.4f;
     prop_data.restitution_ = 0.01f;
@@ -125,33 +104,177 @@ static void dome2() {
     }
     world.FindBody(4)->Rotation(oeVec2::AngleToRadian(-10));
         
-
+    OE_ZOOM = 0.2f;
 }
 
-
+//多边形碰撞
 static void dome3() {
-    CircleType data1;
     Property prop_data;
+    PolygonType polygon_data;
+
+    prop_data.restitution_ = 0.1f;
+    prop_data.stationary_ = true;
+    polygon_data.vertices[0] = { -5.0f,0.1f };
+    polygon_data.vertices[1] = { -5.0f,-0.1f };
+    polygon_data.vertices[2] = { 5.0f,-0.1f };
+    polygon_data.vertices[3] = { 5.0f,0.1f };
+
+
+    oeBody* body1 = world.CreatPolygon(polygon_data, prop_data);
+    oeBody* body2 = world.CreatPolygon(polygon_data, prop_data);
+    oeBody* body3 = world.CreatPolygon(polygon_data, prop_data);
+  
+    body2->MoveTo({-5.0f,5.0f});
+    body2->Rotation(oeVec2::AngleToRadian(90));
+    body3->MoveTo({ 5.0f,5.0f });
+    body3->Rotation(oeVec2::AngleToRadian(90));
+
+    prop_data.stationary_ = false;
+    polygon_data.vertices_count = 3;
+    polygon_data.vertices[0] = { 0.0f,1.0f };
+    polygon_data.vertices[1] = { -0.6f,0.0f };
+    polygon_data.vertices[2] = { 0.6f,0.0f };
+    oeBody* body4 = world.CreatPolygon(polygon_data, prop_data);
+    body4->MoveTo({ 0.0f,1.0f });
     
-    prop_data.inherent_static_friction_ = 0.00f;
-    prop_data.inherent_dynamic_friction_ = 0.0f;
-    prop_data.restitution_ = 1.0f;
+    prop_data.stationary_ = false;
+    polygon_data.vertices_count = 4;
+    polygon_data.vertices[0] = { -1.0f,0.0f };
+    polygon_data.vertices[1] = { -1.0f,-1.0f };
+    polygon_data.vertices[2] = { 0.0f,-1.0f };
+    polygon_data.vertices[3] = { 0.0f,0.0f };
+    oeBody* body5 = world.CreatPolygon(polygon_data, prop_data);
+    body5->MoveTo({ 0.0f,3.0f });
+
+    prop_data.stationary_ = false;
+    polygon_data.vertices_count = 5;
+    polygon_data.vertices[0] = { -1.0f,1.0f };
+    polygon_data.vertices[1] = { -1.0f,-1.0f };
+    polygon_data.vertices[2] = { 1.0f,-1.0f };
+    polygon_data.vertices[3] = { 1.0f,1.0f };
+    polygon_data.vertices[4] = { 0.0f,1.5f };
+    oeBody* body6 = world.CreatPolygon(polygon_data, prop_data);
+    body6->MoveTo({ 0.0f,5.0f });
+
+    prop_data.stationary_ = false;
+    polygon_data.vertices_count = 6;
+    polygon_data.vertices[0] = { -1.0f,1.0f };
+    polygon_data.vertices[1] = { -1.0f,-1.0f };
+    polygon_data.vertices[2] = { 1.0f,-1.0f };
+    polygon_data.vertices[3] = { 1.0f,1.0f };
+    polygon_data.vertices[4] = { 0.5f,1.5f };
+    polygon_data.vertices[5] = { -0.5f,1.5f };
+
+    oeBody* body7 = world.CreatPolygon(polygon_data, prop_data);
+    body7->MoveTo({ 0.0f,7.0f });
+
+    prop_data.stationary_ = false;
+    polygon_data.vertices_count = 6;
+    polygon_data.vertices[0] = { -1.0f,1.0f };
+    polygon_data.vertices[1] = { -1.0f,-1.0f };
+    polygon_data.vertices[2] = { 1.0f,-1.0f };
+    polygon_data.vertices[3] = { 1.0f,1.0f };
+    polygon_data.vertices[4] = { 0.5f,1.5f };
+    polygon_data.vertices[5] = { -0.5f,1.5f };
+
+    oeBody* body8 = world.CreatPolygon(polygon_data, prop_data);
+    body8->MoveTo({ 0.0f,7.0f });
+
     
+}
+
+//金字塔
+static void dome4() {
+    int count = 1;
+    Property prop_data;
+    PolygonType polygon_data;
+    CircleType data1;
+    PolygonType data3;
+
+    prop_data.restitution_ = -0, 5;
+    prop_data.stationary_ = true;
+    polygon_data.vertices[2] = { 10.0f,-0.1f };
+    polygon_data.vertices[3] = { 10.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
+    prop_data.stationary_ = false;
+    for (int i = 10; i > 0; i--) {
+        for (int j = 10 - i; j >= 0; j--) {
+
+            world.CreatPolygon(data3, prop_data);
+            world.FindBody(count)->Move({ (i) * 0.2f + j * 0.1f, (j) * 0.2f });
+            count++;
+        }
+    }
+    checkbox_state = true;
+    OE_ZOOM = 0.3;
+}
+
+//圆形
+static void dome5() {
+    Property prop_data;
+    PolygonType polygon_data;
    
     prop_data.stationary_ = true;
-    world.CreatCircle(data1, prop_data);
-    world.FindBody(0)->MoveTo({ 0.0f,-0.005f });
-    
-    PolygonType polygon_data;
-    prop_data.stationary_ = false;
-    polygon_data.vertces_count = 6;
-    polygon_data.vertices[2] = { 5.0f,-1.0f };
-    polygon_data.vertices[3] = { 10.0f,-0.1f };
-    polygon_data.vertices[4] = { 10.0f,0.1f };
-    polygon_data.vertices[5] = { 5.0f,1.0f };
+    polygon_data.vertices[0] = { -10.0f,0.01f };
+    polygon_data.vertices[1] = { -10.0f,-0.01f };
+    polygon_data.vertices[2] = { 10.0f,-0.01f };
+    polygon_data.vertices[3] = { 10.0f,0.01f };
+
+
     world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(1)->MoveTo({ 0.0f,-0.0f });
+    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
+    CircleType data3;
+    prop_data.stationary_ = false;
+    prop_data.restitution_ = 1.0f;
+    oeBody* body0  = world.CreatCircle(data3, prop_data);
+    body0->MoveTo({ -2.0f,1.0f });
+
+    prop_data.restitution_ = 0.9f;
+    oeBody* body6 = world.CreatCircle(data3, prop_data);
+    body6->MoveTo({ -1.5f,1.0f });
+
+    prop_data.restitution_ = 0.8f;
+    oeBody* body1 = world.CreatCircle(data3, prop_data);
+    body1->MoveTo({ -1.0f,1.0f });
+
+    prop_data.restitution_ = 0.7f;
+    oeBody* body7 = world.CreatCircle(data3, prop_data);
+    body7->MoveTo({ -0.5f,1.0f });
+
+    prop_data.restitution_ = 0.6f;
+    oeBody* body2 = world.CreatCircle(data3, prop_data);
+    body2->MoveTo({ 0.0f,1.0f });
+
+    prop_data.restitution_ = 0.5f;
+    oeBody* body8 = world.CreatCircle(data3, prop_data);
+    body8->MoveTo({ 0.5f,1.0f });
+
+    prop_data.restitution_ = 0.4f;
+    oeBody* body3 = world.CreatCircle(data3, prop_data);
+    body3->MoveTo({ 1.0f,1.0f });
+
+    prop_data.restitution_ = 0.3f;
+    oeBody* body9 = world.CreatCircle(data3, prop_data);
+    body9->MoveTo({ 1.5f,1.0f });
+
+    prop_data.restitution_ = 0.2f;
+    oeBody* body4 = world.CreatCircle(data3, prop_data);
+    body4->MoveTo({ 2.0f,1.0f });
+
+    prop_data.restitution_ = 0.1f;
+    oeBody* body10 = world.CreatCircle(data3, prop_data);
+    body10->MoveTo({ 2.5f,1.0f });
+
+    prop_data.restitution_ = 0.0f;
+    oeBody* body5 = world.CreatCircle(data3, prop_data);
+    body5->MoveTo({ 3.0f,1.0f });
+
+    OE_ZOOM = 0.3f;
 }
+
 
 static void ContorlAllBody() {
     for (auto& body : *(world.GetBodysList())) {
@@ -185,8 +308,8 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome4();
-
+        dome5();
+        shader.scale(OE_ZOOM);
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
 
@@ -243,7 +366,7 @@ int main() {
 
                 
                 static bool button_clicked = false;
-                static bool checkbox_state = false;
+                
                 // 勾选框
                 ImGui::Checkbox("drawAABB", &checkbox_state);
                 if (checkbox_state) { 
@@ -292,7 +415,7 @@ int main() {
                 }
             }
            
-            world.Interation(deltaTime,4);
+            world.Interation(deltaTime,16);
             // Swap buffers and poll events
 
             window.update();

@@ -4,22 +4,6 @@
 
 const float OE_epsilon = 0.0000000000005f;
 
-
-inline float Clamp(float a, float low, float high)
-{
-    return std::max(low, std::min(a, high));
-}
-
-inline float Min(float a, float b)
-{
-    return a < b ? a : b;
-}
-
-inline float Max(float a, float b)
-{
-    return a > b ? a : b;
-}
-
 struct RotationTransform
 {
     float cos;          // Cosine of the rotation angle
@@ -253,7 +237,12 @@ struct oeVec2
         }
         return { 0.0f, 0.0f };
     }
-
-    
- 
+    void clear() {
+        x = 0.0f;
+        y = 0.0f;
+    }
+    void set(float col1_x, float col1_y) {
+        x = col1_x;
+        y = col1_y;
+    }
 };

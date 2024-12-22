@@ -61,13 +61,19 @@ static float inertiaPolygon(const oeVec2 points[],int vertices_count, float mass
 	return totalInertia;
 }
 
+void oeBody::ApplyImpulse(const oeVec2& impulse, const oeVec2& r)
+{
+	velocity_ +=  inverse_mass_ * impulse;
+	angular_velocity_ += inverse_rotational_inertia_ * r.cross(impulse);
+}
+
 void oeBody::Update(float time, int iterations)
 {
 	
 	if (stationary_)return;
 	time /= iterations;
 	//acceleration_ = force_/ mass_;
-	velocity_ += (acceleration_ + oeVec2{0,-10})* time;
+	velocity_ += (acceleration_ + oeVec2{0,-100})* time;
 	oeVec2 displacement =  velocity_ * time;
 	float angle = angular_velocity_ * time;
 	
@@ -93,7 +99,7 @@ oeBody::~oeBody() {
 }
 
 oeBody::oeBody(Shape shape, float radius, float* color, oeVec2 mass_center, float mass, bool body_state, float restitution, float inherent_static_friction, float inherent_dynamic_friction):
-	shape_(shape), radius_(radius),mass_center_(mass_center), stationary_(body_state),restitution_(restitution),
+	shape_(shape), radius_(radius),mass_center_(mass_center), stationary_(body_state),
 	inherent_static_friction_(inherent_static_friction),inherent_dynamic_friction_(inherent_dynamic_friction)
 {	
 	mass_ = 0.0f;
@@ -102,6 +108,10 @@ oeBody::oeBody(Shape shape, float radius, float* color, oeVec2 mass_center, floa
 	if (!body_state) {
 		mass_ = mass;
 		rotational_inertia_ = (1.0f / 12.0f) * mass * radius * radius;	
+		restitution_ = restitution;
+	}
+	if (body_state) {
+		restitution_ = 2.0;
 	}
 
 		/*if (body_state) {
@@ -122,7 +132,7 @@ oeBody::oeBody(Shape shape, float radius, float* color, oeVec2 mass_center, floa
 }
 
 oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, float mass, bool body_state, float restitution, float inherent_static_friction, float inherent_dynamic_friction):
-	shape_(shape), vertices_count_(vertices_count),stationary_(body_state),restitution_(restitution), 
+	shape_(shape), vertices_count_(vertices_count),stationary_(body_state), 
 	inherent_static_friction_(inherent_static_friction), inherent_dynamic_friction_(inherent_dynamic_friction)
 {
 	mass_ = 0.0f;
@@ -132,6 +142,10 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 		float width = (vertices[3].x - vertices[0].x);
 		float height = (vertices[0].y - vertices[1].y);
 		rotational_inertia_ = inertiaPolygon(vertices,vertices_count,mass);//正方形的转动惯量，明天实现多边形的转动惯量
+		restitution_ = restitution;
+	}
+	if (body_state) {
+		restitution_ = 2.0;
 	}
 	inverse_mass_ = mass_ > 0 ? 1.0f / mass_ : 0.0f;
 	inverse_rotational_inertia_ = rotational_inertia_ > 0 ? 1.0f / rotational_inertia_ : 0.0f;
@@ -149,6 +163,7 @@ oeBody::oeBody(Shape shape, oeVec2* vertices, int vertices_count, float* color, 
 	mass_center_ = GetPolygonCentroid();
 	GetAABB();  // 初始化AABB
 }
+
 void oeBody::Move(const oeVec2 v) {
 	if (shape_ == CIRCLE) {
 		mass_center_.y += v.y;
@@ -201,6 +216,7 @@ void oeBody::Rotation(const float radian) {
 		GetAABB(); // 更新AABB包围盒
 	}
 }
+
 void oeBody::SetVelocity(const oeVec2 v0) { 
 	velocity_ = v0; 
 }
@@ -214,26 +230,6 @@ void oeBody::SetAngularVelocity(const float av0)
 {
 	angular_velocity_ = av0;
 }
-//
-//float oeBody::GetArea() const
-//{
-//	return area_;
-//}
-//
-//float oeBody::GetMass()const
-//{
-//	return mass_;
-//}
-//
-//float oeBody::GetDensity()const
-//{
-//	return density_;
-//}
-//
-//float oeBody::GetVolume()const
-//{
-//	return volume_;
-//}
 
 oeVec2 oeBody::GetVelocity()const
 {
@@ -244,11 +240,6 @@ oeVec2 oeBody::GetAcceleration()const
 {
 	return acceleration_;
 }
-
-//float oeBody::GetAngle()const
-//{
-//	return angle_;
-//}
 
 float oeBody::GetAngularVelocity()const
 {
@@ -264,7 +255,6 @@ bool oeBody::GetBodyState()const
 {
 	return stationary_;
 }
-
 
 void oeBody::GetAABB()
 {

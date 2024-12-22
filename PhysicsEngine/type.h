@@ -9,13 +9,14 @@ struct CircleType
 };
 
 struct PolygonType {
-	int vertces_count = 4;
+	int vertices_count = 4;
 	oeVec2 vertices[the_maximum_vertices] = {	{-0.1f, 0.1f},	// --------
 												{-0.1f,-0.1f},	// |	  |
 												{ 0.1f,-0.1f},	// |	  |
 												{ 0.1f, 0.1f} };// --------
 	float color[4] = { 1.0f, 0.0f, 0.0f ,0.3f };
 };
+
 
 struct Property {
 	//是否是静止物体
@@ -25,7 +26,7 @@ struct Property {
 	float mass_ = 1.0f;//g
 
 	//物体的恢复系数
-	float restitution_ = 0.5f;
+	float restitution_ = 0.0f;
 
 	//固定静摩擦力
 	float inherent_static_friction_ = 0.5f;

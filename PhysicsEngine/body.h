@@ -6,8 +6,6 @@
 #include <vector>
 #include "math.h"
 #include <iostream>
-#include "forcegenerator.h"
-
 const int the_maximum_vertices = 8;
 
 //形状
@@ -16,7 +14,6 @@ enum Shape {
 	CIRCLE,		//圆形
 	POLYGON		//多边形
 };
-
 
 //AABB
 struct oeAABB
@@ -32,17 +29,13 @@ struct oeAABB
 //功能：是本物理引擎最基本的元素， 所有的物体都是Body类，通常不能直接调用Body的构造函数创建物体，需要通过BodyManager的CreateBody函数来创建物体
 //能创建多边形，圆形两种形状。创建的物体包含了基本的物理属性
 class oeBody {
-
 private:
 	float density_ = 0.1f;						//密度
 
 	float volume_ = 1.0f;						//体积
 		
 	float area_ = 1.0f;							//面积
-	bool dirty_ = true; // 默认为脏状态
 public:
-	bool IsDirty() const { return dirty_; } // 是否发生变化
-	void SetDirty(bool dirty) { dirty_ = dirty; }
 
 	float angle_ = 0.0f;						//物体旋转的角度
 
@@ -51,10 +44,16 @@ public:
 	oeVec2 constant_force_ = oeVec2::Zero();	//恒力
 
 	float angular_velocity_ = 0.0f;				//物体的角速度
+	void SetAngularVelocity(const float av0);
+	float  GetAngularVelocity() const;
 
-	oeVec2 velocity_ = { 0.0f,0.0f };			//物体的线速度	
+	oeVec2 velocity_ = { 0.0f,0.0f };			//物体的线速度
+	oeVec2 GetVelocity() const;
+	void SetVelocity(const oeVec2 v0);
 
 	oeVec2 acceleration_ = { 0.0f,0.0f };		//物体的加速度
+	oeVec2 GetAcceleration() const;
+	void SetAcceleration(const oeVec2 a0);
 
 	int body_id_ = -1;							//物体的id，不存在表示为-1
 
@@ -80,6 +79,7 @@ public:
 	float inverse_mass_ = 0.0f;					//物体质量的倒数
 
 	bool stationary_ = false;					//是否是静止物体
+	bool   GetBodyState() const;
 
 	float inherent_static_friction_ = 0.5f;		//固定静摩擦力
 
@@ -90,6 +90,7 @@ public:
 	float inverse_rotational_inertia_ = 0.0f;	//转动惯量的倒数
 	
 	float restitution_ = 0.0f;					//物体的恢复系数
+	float  GetRestitution()const;
 
 	oeBody();
 	//物体的析构函数
@@ -114,26 +115,7 @@ public:
 	//将物体旋转radian度单位是弧度
 	void Rotation(const float radian);
 
-	//设置物体的速度
-	void SetVelocity(const oeVec2 v0);
-
-	//设置物体的加速度
-	void SetAcceleration(const oeVec2 a0);
-
-	//设置物体的角速度
-	void SetAngularVelocity(const float av0);
-
-	//float  GetArea() const;
-	//float  GetMass() const;
-	//float  GetDensity() const;
-	//float  GetVolume() const;
-	//float  GetAngle() const;
-
-	float  GetAngularVelocity() const;
-	float  GetRestitution()const;
-	bool   GetBodyState() const;
-	oeVec2 GetVelocity() const;
-	oeVec2 GetAcceleration() const;
+	void ApplyImpulse(const oeVec2& impulse, const oeVec2& r);
 
 	//获得多边形的质心坐标
 	oeVec2 GetPolygonCentroid() const;
