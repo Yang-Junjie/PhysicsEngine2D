@@ -35,12 +35,10 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        // 开始 ImGui 帧
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 创建一个简单的窗口
         ImGui::Begin("Hello, world!");
         ImGui::Text("This is some useful text.");
         ImGui::End();
@@ -56,7 +54,7 @@ int main() {
         glfwSwapBuffers(window);
     }
 
-    // 清理
+    
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
