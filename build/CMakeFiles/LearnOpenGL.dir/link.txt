@@ -1,0 +1,3 @@
+"C:\Program Files (x86)\CppTools\Cmake\bin\cmake.exe" -E rm -f CMakeFiles\LearnOpenGL.dir/objects.a
+C:\PROGRA~2\CppTools\mingw64\bin\ar.exe qc CMakeFiles\LearnOpenGL.dir/objects.a @CMakeFiles\LearnOpenGL.dir\objects1.rsp
+C:\PROGRA~2\CppTools\mingw64\bin\G__~1.EXE -g -Wl,--whole-archive CMakeFiles\LearnOpenGL.dir/objects.a -Wl,--no-whole-archive -o G:\cpp\code\Physics-Engine-2D\bin\LearnOpenGL.exe -Wl,--out-implib,libLearnOpenGL.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\LearnOpenGL.dir\linkLibs.rsp
