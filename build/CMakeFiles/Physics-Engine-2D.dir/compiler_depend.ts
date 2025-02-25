@@ -1,2 +1,2 @@
 # CMAKE generated file: DO NOT EDIT!
-# Timestamp file for compiler generated dependencies management for Physics-Engine-2D.
+# Timestamp file for compiler generated dependencies management for Physics-engine-2D.

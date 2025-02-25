@@ -1,1 +1,1 @@
--I"G:/cpp/code/Physics-Engine-2D/./include/GLAD" -I"G:/cpp/code/Physics-Engine-2D/./include/imgui" -I"G:/cpp/code/Physics-Engine-2D/./include"
+-ID:/C++/PhysicsEngine/./include/GLAD -ID:/C++/PhysicsEngine/./include/imgui -ID:/C++/PhysicsEngine/./include/Graphics -ID:/C++/PhysicsEngine/./include

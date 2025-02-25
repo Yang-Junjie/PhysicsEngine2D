@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Physics-engine-2D)
 set(INCLUDE_DIR ./include/GLAD/ 
                 ./include/imgui/ 
+                ./include/Graphics/ 
                 ./include/)
 
 include_directories(${INCLUDE_DIR})
@@ -9,7 +10,8 @@ include_directories(${INCLUDE_DIR})
 
 file(GLOB_RECURSE SOURCE_FILE   ./src/*.cpp 
                                 ./src/GLAD/glad.c 
-                                ./src/imgui/*.cpp)
+                                ./src/imgui/*.cpp
+                                ./src/Graphics/*.cpp)
 message("正在编译")
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})
 message("编译完成")

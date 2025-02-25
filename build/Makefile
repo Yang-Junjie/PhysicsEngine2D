@@ -47,19 +47,19 @@ cmake_force:
 SHELL = cmd.exe
 
 # The CMake executable.
-CMAKE_COMMAND = "C:\Program Files (x86)\CppTools\Cmake\bin\cmake.exe"
+CMAKE_COMMAND = D:\Cmake\bin\cmake.exe
 
 # The command to remove a file.
-RM = "C:\Program Files (x86)\CppTools\Cmake\bin\cmake.exe" -E rm -f
+RM = D:\Cmake\bin\cmake.exe -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = G:\cpp\code\Physics-Engine-2D
+CMAKE_SOURCE_DIR = D:\C++\PhysicsEngine
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = G:\cpp\code\Physics-Engine-2D\build
+CMAKE_BINARY_DIR = D:\C++\PhysicsEngine\build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -67,7 +67,7 @@ CMAKE_BINARY_DIR = G:\cpp\code\Physics-Engine-2D\build
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
-	"C:\Program Files (x86)\CppTools\Cmake\bin\cmake-gui.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	D:\Cmake\bin\cmake-gui.exe -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -77,7 +77,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
-	"C:\Program Files (x86)\CppTools\Cmake\bin\cmake.exe" --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	D:\Cmake\bin\cmake.exe --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -86,9 +86,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start G:\cpp\code\Physics-Engine-2D\build\CMakeFiles G:\cpp\code\Physics-Engine-2D\build\\CMakeFiles\progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\C++\PhysicsEngine\build\CMakeFiles D:\C++\PhysicsEngine\build\\CMakeFiles\progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start G:\cpp\code\Physics-Engine-2D\build\CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\C++\PhysicsEngine\build\CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -151,6 +151,30 @@ src/GLAD/glad.s: src/GLAD/glad.c.s
 src/GLAD/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/GLAD/glad.c.s
 .PHONY : src/GLAD/glad.c.s
+
+src/Graphics/OEWindow.obj: src/Graphics/OEWindow.cpp.obj
+.PHONY : src/Graphics/OEWindow.obj
+
+# target to build an object file
+src/Graphics/OEWindow.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.obj
+.PHONY : src/Graphics/OEWindow.cpp.obj
+
+src/Graphics/OEWindow.i: src/Graphics/OEWindow.cpp.i
+.PHONY : src/Graphics/OEWindow.i
+
+# target to preprocess a source file
+src/Graphics/OEWindow.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.i
+.PHONY : src/Graphics/OEWindow.cpp.i
+
+src/Graphics/OEWindow.s: src/Graphics/OEWindow.cpp.s
+.PHONY : src/Graphics/OEWindow.s
+
+# target to generate assembly for a file
+src/Graphics/OEWindow.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.s
+.PHONY : src/Graphics/OEWindow.cpp.s
 
 src/imgui/imgui.obj: src/imgui/imgui.cpp.obj
 .PHONY : src/imgui/imgui.obj
@@ -356,6 +380,9 @@ help:
 	@echo ... src/GLAD/glad.obj
 	@echo ... src/GLAD/glad.i
 	@echo ... src/GLAD/glad.s
+	@echo ... src/Graphics/OEWindow.obj
+	@echo ... src/Graphics/OEWindow.i
+	@echo ... src/Graphics/OEWindow.s
 	@echo ... src/imgui/imgui.obj
 	@echo ... src/imgui/imgui.i
 	@echo ... src/imgui/imgui.s
