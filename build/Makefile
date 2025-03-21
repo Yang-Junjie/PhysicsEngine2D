@@ -152,6 +152,54 @@ src/GLAD/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/GLAD/glad.c.s
 .PHONY : src/GLAD/glad.c.s
 
+src/Graphics/OERender.obj: src/Graphics/OERender.cpp.obj
+.PHONY : src/Graphics/OERender.obj
+
+# target to build an object file
+src/Graphics/OERender.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.obj
+.PHONY : src/Graphics/OERender.cpp.obj
+
+src/Graphics/OERender.i: src/Graphics/OERender.cpp.i
+.PHONY : src/Graphics/OERender.i
+
+# target to preprocess a source file
+src/Graphics/OERender.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.i
+.PHONY : src/Graphics/OERender.cpp.i
+
+src/Graphics/OERender.s: src/Graphics/OERender.cpp.s
+.PHONY : src/Graphics/OERender.s
+
+# target to generate assembly for a file
+src/Graphics/OERender.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.s
+.PHONY : src/Graphics/OERender.cpp.s
+
+src/Graphics/OEShader.obj: src/Graphics/OEShader.cpp.obj
+.PHONY : src/Graphics/OEShader.obj
+
+# target to build an object file
+src/Graphics/OEShader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.obj
+.PHONY : src/Graphics/OEShader.cpp.obj
+
+src/Graphics/OEShader.i: src/Graphics/OEShader.cpp.i
+.PHONY : src/Graphics/OEShader.i
+
+# target to preprocess a source file
+src/Graphics/OEShader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.i
+.PHONY : src/Graphics/OEShader.cpp.i
+
+src/Graphics/OEShader.s: src/Graphics/OEShader.cpp.s
+.PHONY : src/Graphics/OEShader.s
+
+# target to generate assembly for a file
+src/Graphics/OEShader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Physics-engine-2D.dir\build.make CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.s
+.PHONY : src/Graphics/OEShader.cpp.s
+
 src/Graphics/OEWindow.obj: src/Graphics/OEWindow.cpp.obj
 .PHONY : src/Graphics/OEWindow.obj
 
@@ -380,6 +428,12 @@ help:
 	@echo ... src/GLAD/glad.obj
 	@echo ... src/GLAD/glad.i
 	@echo ... src/GLAD/glad.s
+	@echo ... src/Graphics/OERender.obj
+	@echo ... src/Graphics/OERender.i
+	@echo ... src/Graphics/OERender.s
+	@echo ... src/Graphics/OEShader.obj
+	@echo ... src/Graphics/OEShader.i
+	@echo ... src/Graphics/OEShader.s
 	@echo ... src/Graphics/OEWindow.obj
 	@echo ... src/Graphics/OEWindow.i
 	@echo ... src/Graphics/OEWindow.s

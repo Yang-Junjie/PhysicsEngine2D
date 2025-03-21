@@ -21,5 +21,3 @@ set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJ
 set(GLFW_LIB ${PROJECT_SOURCE_DIR}/libs/GLFW/lib-mingw-w64/libglfw3dll.a)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${GLFW_LIB})
-
-message("已生成可执行文件至${PROJECT_SOURCE_DIR}/bin/")

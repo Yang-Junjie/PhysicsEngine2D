@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
   "CMakeFiles/Physics-engine-2D.dir/src/GLAD/glad.c.obj"
   "CMakeFiles/Physics-engine-2D.dir/src/GLAD/glad.c.obj.d"
+  "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.obj"
+  "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.obj.d"
+  "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.obj"
+  "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.obj.d"
   "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.obj"
   "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.obj.d"
   "CMakeFiles/Physics-engine-2D.dir/src/imgui/imgui.cpp.obj"

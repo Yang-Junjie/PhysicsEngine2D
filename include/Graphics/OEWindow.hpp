@@ -16,7 +16,7 @@ class OEWindow {
     
         bool init();
         void run();
-        void runCode(std::function<void()> code);
+        void mainWindow(std::function<void()> code);
     
     
         void setKeyCallback(GLFWkeyfun callback);
@@ -26,13 +26,14 @@ class OEWindow {
        
         GLFWwindow* getGLFWWindow();
         void getSize(int& width, int& height) const;
+        bool shouldClose() const;
     
     private:
         int width_;
         int height_;
         std::string title_;
         GLFWwindow* window_;
-        std::function<void()> runcode_;
+        std::function<void()> sourceCode_;
 
         bool initGLFW();
         bool initImGui();

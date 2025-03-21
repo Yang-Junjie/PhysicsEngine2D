@@ -7,6 +7,18 @@
 },
 {
   "directory": "D:/C++/PhysicsEngine/build",
+  "command": "C:\\mingw64\\bin\\g++.exe  @CMakeFiles/Physics-engine-2D.dir/includes_CXX.rsp -g -o CMakeFiles\\Physics-engine-2D.dir\\src\\Graphics\\OERender.cpp.obj -c D:\\C++\\PhysicsEngine\\src\\Graphics\\OERender.cpp",
+  "file": "D:/C++/PhysicsEngine/src/Graphics/OERender.cpp",
+  "output": "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OERender.cpp.obj"
+},
+{
+  "directory": "D:/C++/PhysicsEngine/build",
+  "command": "C:\\mingw64\\bin\\g++.exe  @CMakeFiles/Physics-engine-2D.dir/includes_CXX.rsp -g -o CMakeFiles\\Physics-engine-2D.dir\\src\\Graphics\\OEShader.cpp.obj -c D:\\C++\\PhysicsEngine\\src\\Graphics\\OEShader.cpp",
+  "file": "D:/C++/PhysicsEngine/src/Graphics/OEShader.cpp",
+  "output": "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEShader.cpp.obj"
+},
+{
+  "directory": "D:/C++/PhysicsEngine/build",
   "command": "C:\\mingw64\\bin\\g++.exe  @CMakeFiles/Physics-engine-2D.dir/includes_CXX.rsp -g -o CMakeFiles\\Physics-engine-2D.dir\\src\\Graphics\\OEWindow.cpp.obj -c D:\\C++\\PhysicsEngine\\src\\Graphics\\OEWindow.cpp",
   "file": "D:/C++/PhysicsEngine/src/Graphics/OEWindow.cpp",
   "output": "CMakeFiles/Physics-engine-2D.dir/src/Graphics/OEWindow.cpp.obj"

@@ -1,10 +1,10 @@
 #include "OEGraphics.hpp"
-
+#include "OERender.hpp"
+#include "OEShader.hpp"
 OEWindow window(800, 600, "Physics Engine");
-void runCode(){
-   
 
-
+void mainWindow(){
+ 
 }
 
 int main() {
@@ -13,10 +13,13 @@ int main() {
         std::cerr << "Failed to initialize window!" << std::endl;
         return -1;
     }
-
-    std::function<void()> runcode = runCode;
-    window.runCode(runcode);
+   
+    std::function<void()> runcode = mainWindow;
+    window.mainWindow(runcode);
     window.run();
-
+   
     return 0;
 }
+
+ 
+
