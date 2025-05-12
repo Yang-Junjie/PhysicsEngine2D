@@ -60,9 +60,10 @@ static void dome1() {
 //多米诺骨牌
 static void dome2() {
 
-    int count = 4;
+    int count = 1;
     Property prop_data;
-    prop_data.inherent_static_friction_ = 0.6f;
+    prop_data.mass_ = 1.0;
+    prop_data.inherent_static_friction_ = 0.8f;
     prop_data.inherent_dynamic_friction_ = 0.4f;
     prop_data.restitution_ = 0.01f;
 
@@ -73,22 +74,7 @@ static void dome2() {
     world.CreatPolygon(polygon_data, prop_data);
     world.FindBody(0)->MoveTo({ 0.0f,-3.0f });
 
-    polygon_data.vertices[2] = { 6.0f,-0.1f };
-    polygon_data.vertices[3] = { 6.0f,0.1f };
-    world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(1)->MoveTo({ 0.0f,3.0f });
 
-    polygon_data.vertices[2] = { 4.0f,-0.1f };
-    polygon_data.vertices[3] = { 4.0f,0.1f };
-    world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(2)->MoveTo({ 3.0f,1.5f });
-    world.FindBody(2)->Rotation(oeVec2::AngleToRadian(30));
-
-    polygon_data.vertices[2] = { 4.0f,-0.1f };
-    polygon_data.vertices[3] = { 4.0f,0.1f };
-    world.CreatPolygon(polygon_data, prop_data);
-    world.FindBody(3)->MoveTo({ 1.0f,-1.0f });
-    world.FindBody(3)->Rotation(oeVec2::AngleToRadian(-25));
 
     polygon_data.vertices[0] = { -0.05f,1.0f };
     polygon_data.vertices[1] = { -0.05f,-0.1f };
@@ -96,13 +82,13 @@ static void dome2() {
     polygon_data.vertices[3] = { 0.05f,1.0f };
 
     prop_data.stationary_ = false;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 15; i++) {
         world.CreatPolygon(polygon_data, prop_data);
-        world.FindBody(count)->MoveTo({ -2.0f + i * 0.5f ,3.41f });
+        world.FindBody(count)->MoveTo({ -4.0f + i * 0.5f ,-2.5f });
         
         count++;
     }
-    world.FindBody(4)->Rotation(oeVec2::AngleToRadian(-10));
+    world.FindBody(1)->Rotation(oeVec2::AngleToRadian(-10));
         
     OE_ZOOM = 0.2f;
 }
@@ -203,7 +189,7 @@ static void dome4() {
         for (int j = 10 - i; j >= 0; j--) {
 
             world.CreatPolygon(data3, prop_data);
-            world.FindBody(count)->Move({ (i) * 0.2f + j * 0.1f, (j) * 0.2f });
+            world.FindBody(count)->Move({ (i) * 0.2f + j * 0.1f, (j) * 0.4f });
             count++;
         }
     }
@@ -227,54 +213,91 @@ static void dome5() {
     world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
 
     CircleType data3;
+    PolygonType data;
     prop_data.stationary_ = false;
     prop_data.restitution_ = 1.0f;
     oeBody* body0  = world.CreatCircle(data3, prop_data);
-    body0->MoveTo({ -2.0f,1.0f });
+    body0->MoveTo({ -2.0f,3.0f });
+
 
     prop_data.restitution_ = 0.9f;
     oeBody* body6 = world.CreatCircle(data3, prop_data);
-    body6->MoveTo({ -1.5f,1.0f });
+    body6->MoveTo({ -1.5f,3.0f });
+
 
     prop_data.restitution_ = 0.8f;
     oeBody* body1 = world.CreatCircle(data3, prop_data);
-    body1->MoveTo({ -1.0f,1.0f });
+    body1->MoveTo({ -1.0f,3.0f });
 
     prop_data.restitution_ = 0.7f;
     oeBody* body7 = world.CreatCircle(data3, prop_data);
-    body7->MoveTo({ -0.5f,1.0f });
+    body7->MoveTo({ -0.5f,3.0f });
 
     prop_data.restitution_ = 0.6f;
     oeBody* body2 = world.CreatCircle(data3, prop_data);
-    body2->MoveTo({ 0.0f,1.0f });
+    body2->MoveTo({ 0.0f,3.0f });
 
     prop_data.restitution_ = 0.5f;
     oeBody* body8 = world.CreatCircle(data3, prop_data);
-    body8->MoveTo({ 0.5f,1.0f });
+    body8->MoveTo({ 0.5f,3.0f });
 
     prop_data.restitution_ = 0.4f;
     oeBody* body3 = world.CreatCircle(data3, prop_data);
-    body3->MoveTo({ 1.0f,1.0f });
+    body3->MoveTo({ 1.0f,3.0f });
 
     prop_data.restitution_ = 0.3f;
     oeBody* body9 = world.CreatCircle(data3, prop_data);
-    body9->MoveTo({ 1.5f,1.0f });
+    body9->MoveTo({ 1.5f,3.0f });
 
     prop_data.restitution_ = 0.2f;
     oeBody* body4 = world.CreatCircle(data3, prop_data);
-    body4->MoveTo({ 2.0f,1.0f });
+    body4->MoveTo({ 2.0f,3.0f });
 
     prop_data.restitution_ = 0.1f;
     oeBody* body10 = world.CreatCircle(data3, prop_data);
-    body10->MoveTo({ 2.5f,1.0f });
+    body10->MoveTo({ 2.5f,3.0f });
 
     prop_data.restitution_ = 0.0f;
     oeBody* body5 = world.CreatCircle(data3, prop_data);
-    body5->MoveTo({ 3.0f,1.0f });
+    body5->MoveTo({ 3.0f,3.0f });
+
+
 
     OE_ZOOM = 0.3f;
 }
 
+static void dome6() {
+    int count = 1;
+    Property prop_data;
+    PolygonType polygon_data;
+    CircleType data1;
+    PolygonType data3;
+
+    prop_data.restitution_ = 0.2;
+    prop_data.stationary_ = true;
+    prop_data.inherent_static_friction_ = 0.0;
+    polygon_data.vertices[2] = { 10.0f,-0.1f };
+    polygon_data.vertices[3] = { 10.0f,0.1f };
+    world.CreatPolygon(polygon_data, prop_data);
+    world.FindBody(0)->MoveTo({ 0.0f,-0.22f });
+
+    prop_data.stationary_ = false;
+    for (int i = 10; i > 0; i--) {
+        for (int j = 10; j >= 0; j--) {
+
+            world.CreatPolygon(data3, prop_data);
+            world.FindBody(count)->Move({ (i) * 0.2f , (j) * 0.2f });
+            count++;
+        }
+    }
+    checkbox_state = true;
+    OE_ZOOM = 0.1;
+    data1.radius = 0.5f;
+    prop_data.mass_ = 1000.0;
+    oeBody* body = world.CreatCircle(data1, prop_data);
+    body->MoveTo({ -10.0f,2.0f });
+    body->SetVelocity({100,0});
+}
 
 static void ContorlAllBody() {
     for (auto& body : *(world.GetBodysList())) {
@@ -308,7 +331,8 @@ int main() {
         // Compile and link shaders
         Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 
-        dome5();
+        dome6();
+        
         shader.scale(OE_ZOOM);
         auto lastFrameTime = std::chrono::high_resolution_clock::now(); // 上一帧的时间
         float startTime = static_cast<float>(glfwGetTime()); // 记录程序启动时间
@@ -317,13 +341,13 @@ int main() {
         if (world.GetBodyNum()>0) {
             selectedBody = world.FindBody(0);
         }
-
+       
         while (!window.shouldClose()) {
             // 计算当前帧的时间
             auto currentFrameTime = std::chrono::high_resolution_clock::now();
             auto deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
             lastFrameTime = currentFrameTime;
-
+           
             // Input handling
             imguiManager.handleInput();
 
@@ -415,7 +439,7 @@ int main() {
                 }
             }
            
-            world.Interation(deltaTime,16);
+            world.Interation(deltaTime,10);
             // Swap buffers and poll events
 
             window.update();

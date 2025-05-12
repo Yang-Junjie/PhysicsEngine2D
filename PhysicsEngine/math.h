@@ -1,15 +1,15 @@
 #pragma once
-#include <cmath>   // For std::cos and std::sin
+#include <cmath>   
 #include <iostream>
 
 const float OE_epsilon = 0.0000000000005f;
 
 struct RotationTransform
 {
-    float cos;          // Cosine of the rotation angle
-    float sin;          // Sine of the rotation angle
-    float positionX;    // Translation along the X-axis
-    float positionY;    // Translation along the Y-axis
+    float cos;          
+    float sin;         
+    float positionX;    
+    float positionY;   
 };
 
 struct oeVec2
